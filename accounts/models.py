@@ -23,4 +23,4 @@ class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     conversion_date = models.DateTimeField()
     org = models.ForeignKey(Organization, on_delete=models.CASCADE)
-    # lead = models.ForeignKey(Lead, on_delete=models.CASCADE)
+    lead = models.ForeignKey('leads.Lead', on_delete=models.CASCADE, null=True, blank=True)

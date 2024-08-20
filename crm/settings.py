@@ -82,7 +82,7 @@ DATABASES = {
     # }
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'crm',
+        'NAME': 'dbcrm',
         'USER' : 'postgres',
         'PASSWORD' : 'django123',
         'HOST' : 'localhost',

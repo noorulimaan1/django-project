@@ -42,8 +42,8 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
-    first_name = models.CharField(max_length=30, null=True, blank=True)
-    last_name = models.CharField(max_length=30, null=True, blank=True)
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=30)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
@@ -58,11 +58,14 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class Admin(Timestamp):
-    user = models.OneToOneField("User", on_delete=models.CASCADE, related_name="admin_profile")
-    org = models.OneToOneField("Organization", on_delete=models.CASCADE, related_name="admin")
+    user = models.OneToOneField(
+        "User", on_delete=models.CASCADE, related_name="admin_profile"
+    )
+    org = models.OneToOneField(
+        "Organization", on_delete=models.CASCADE, related_name="admin"
+    )
     address = models.TextField(blank=True, null=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
-    
 
     def __str__(self):
         return f"Admin: {self.user.email} - {self.org.name}"
@@ -79,13 +82,18 @@ class Organization(Timestamp):
 
 
 class Agent(Timestamp):
-    user = models.OneToOneField("User", on_delete=models.CASCADE, related_name="agent_profile")
+    user = models.OneToOneField(
+        "User", on_delete=models.CASCADE, related_name="agent_profile"
+    )
     org = models.ForeignKey(
         "Organization", on_delete=models.CASCADE, related_name="agents"
     )
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     hire_date = models.DateField(null=True, blank=True)
     position = models.CharField(max_length=50, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.first_name} {self.user.last_name}"
 
 
 class Customer(Timestamp):

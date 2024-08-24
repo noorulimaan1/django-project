@@ -11,7 +11,7 @@ from .forms import LeadModelForm, LeadForm
 class LeadListView(generic.ListView):
     template_name = "leads_list.html"
     queryset = Lead.objects.all()
-    context_object_name = "leads"
+    context_object_name = "client"
 
 
 class LeadDetailView(generic.DetailView):
@@ -25,7 +25,7 @@ class LeadCreateView(generic.CreateView):
     form_class = LeadModelForm
 
     def get_success_url(self):
-        return reverse("leads:lead-list")
+        return reverse("client:lead-list")
 
 
 class LeadUpdateView(generic.UpdateView):
@@ -34,7 +34,7 @@ class LeadUpdateView(generic.UpdateView):
     form_class = LeadModelForm
 
     def get_success_url(self):
-        return reverse("leads:lead-list")
+        return reverse("client:lead-list")
 
 
 class LeadDeleteView(generic.DeleteView):
@@ -42,5 +42,5 @@ class LeadDeleteView(generic.DeleteView):
     queryset = Lead.objects.all()
 
     def get_success_url(self):
-        return reverse("leads:lead-list")
+        return reverse("client:lead-list")
 

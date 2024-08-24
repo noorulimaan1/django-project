@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinValueValidator
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
@@ -7,8 +8,6 @@ from django.contrib.auth.models import (
 
 
 # Create your models here.
-
-
 class Timestamp(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
@@ -41,16 +40,21 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
+    username = models.CharField(max_length=30, unique=True, blank=True, null=True)
+    email = models.EmailField()
+    age = models.IntegerField(validators=[MinValueValidator(0)], blank=True, null=True)
+    profile_photo = models.ImageField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    date_of_birth = models.DateField(blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
 
-    # This links the custom manager (UserManager) to the User model.
     objects = UserManager()
 
-    USERNAME_FIELD = "email"
+    USERNAME_FIELD = "username"
     REQUIRED_FIELDS = ["first_name", "last_name"]
 
     def __str__(self):
@@ -64,8 +68,7 @@ class Admin(Timestamp):
     org = models.OneToOneField(
         "Organization", on_delete=models.CASCADE, related_name="admin"
     )
-    address = models.TextField(blank=True, null=True)
-    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    department = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
         return f"Admin: {self.user.email} - {self.org.name}"
@@ -73,9 +76,11 @@ class Admin(Timestamp):
 
 class Organization(Timestamp):
     name = models.CharField(max_length=50)
+    email = models.CharField(unique=True)
     address = models.TextField(blank=True, null=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     website = models.URLField(blank=True, null=True)
+    logo = models.ImageField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.name}"
@@ -88,9 +93,7 @@ class Agent(Timestamp):
     org = models.ForeignKey(
         "Organization", on_delete=models.CASCADE, related_name="agents"
     )
-    phone_number = models.CharField(max_length=15, blank=True, null=True)
     hire_date = models.DateField(null=True, blank=True)
-    position = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name}"
@@ -101,5 +104,11 @@ class Customer(Timestamp):
         Organization, on_delete=models.CASCADE, related_name="customers"
     )
     lead = models.OneToOneField(
-        "leads.Lead", on_delete=models.CASCADE, related_name="customer_lead"
+        "client.Lead", on_delete=models.CASCADE, related_name="customer_lead"
     )
+    total_purchases = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    first_purchase_date = models.DateField(null=True, blank=True)
+    last_purchase_date = models.DateField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Customer: {self.lead.first_name} {self.lead.last_name} - Total Purchases: {self.total_purchases}"

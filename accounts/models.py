@@ -52,6 +52,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     address = models.TextField(blank=True, null=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
 
+
     objects = UserManager()
 
     USERNAME_FIELD = "username"

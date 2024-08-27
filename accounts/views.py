@@ -33,13 +33,30 @@ class AgentCreateView(LoginRequiredMixin, generic.CreateView):
     template_name = "agent_create.html"
     form_class = AgentModelForm
 
-    def form_valid(self, form):
-        agent = form.save(commit=False)
-        admin = Admin.objects.get(user=self.request.user)
-        agent.org = self.request.user.org  # Automatically assign the organization
-        agent.save()
-        return super().form_valid(form)
+    def get_success_url(self):
+        return reverse("accounts:agent-list")
+    
+
+class AgentUpdateView(LoginRequiredMixin, generic.UpdateView):
+    template_name = "agent_update.html"
+    queryset = Agent.objects.all()
+    form_class = AgentModelForm
 
     def get_success_url(self):
-        return reverse("account:agent-list")
+        return reverse("accounts:agent-list")
+    
+    
+
+class AgentDetailView(LoginRequiredMixin, generic.DetailView):
+    template_name = 'agent_detail.html'
+    queryset = Agent.objects.all()
+    context_object_name = 'agent'
+
+
+class AgentDeleteView(LoginRequiredMixin, generic.DeleteView):
+    template_name = "agent_delete.html"
+    queryset = Agent.objects.all()
+
+    def get_success_url(self):
+        return reverse("accounts:agent-list")
 

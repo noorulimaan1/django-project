@@ -20,7 +20,7 @@ class Timestamp(models.Model):
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError("The Email field must be set")
+            raise ValueError('The Email field must be set')
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
@@ -28,13 +28,13 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
-        extra_fields.setdefault("is_staff", True)
-        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
 
-        if extra_fields.get("is_staff") is not True:
-            raise ValueError("Superuser must have is_staff=True.")
-        if extra_fields.get("is_superuser") is not True:
-            raise ValueError("Superuser must have is_superuser=True.")
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
 
         return self.create_user(email, password, **extra_fields)
 
@@ -42,7 +42,7 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
-    username = models.CharField(max_length=30, unique=True, blank=True, null=True)
+    username = models.CharField(max_length=30, unique=True)
     email = models.EmailField(blank=True, null=True)
     age = models.IntegerField(validators=[MinValueValidator(0)], blank=True, null=True)
     profile_photo = models.ImageField(blank=True, null=True)
@@ -55,24 +55,24 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = UserManager()
 
-    USERNAME_FIELD = "username"
-    REQUIRED_FIELDS = ["first_name", "last_name"]
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['first_name', 'last_name']
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}"
+        return f'{self.first_name} {self.last_name}'
 
 
 class Admin(Timestamp):
     user = models.OneToOneField(
-        "User", on_delete=models.CASCADE, related_name="admin_profile"
+        'User', on_delete=models.CASCADE, related_name='admin_profile'
     )
     org = models.OneToOneField(
-        "Organization", on_delete=models.CASCADE, related_name="admin"
+        'Organization', on_delete=models.CASCADE, related_name='admin'
     )
-    department = models.CharField(max_length=50, blank=True, null=True)
+    # department = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
-        return f"Admin: {self.user.email} - {self.org.name}"
+        return f'Admin: {self.user.email} - {self.org.name}'
 
 
 class Organization(Timestamp):
@@ -84,32 +84,20 @@ class Organization(Timestamp):
     logo = models.ImageField(blank=True, null=True)
 
     def __str__(self):
-        return f"{self.name}"
+        return f'{self.name}'
 
 
 class Agent(Timestamp):
     user = models.OneToOneField(
-        "User", on_delete=models.CASCADE, related_name="agent_profile"
+        'User', on_delete=models.CASCADE, related_name='agent_profile'
     )
     org = models.ForeignKey(
-        "Organization", on_delete=models.CASCADE, related_name="agents"
+        'Organization', on_delete=models.CASCADE, related_name='agents'
     )
     hire_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user.first_name} {self.user.last_name}"
+        return f'{self.user.first_name} {self.user.last_name}'
 
 
-class Customer(Timestamp):
-    org = models.ForeignKey(
-        Organization, on_delete=models.CASCADE, related_name="customers"
-    )
-    lead = models.OneToOneField(
-        "client.Lead", on_delete=models.CASCADE, related_name="customer_lead"
-    )
-    total_purchases = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    first_purchase_date = models.DateField(null=True, blank=True)
-    last_purchase_date = models.DateField(null=True, blank=True)
 
-    def __str__(self):
-        return f"Customer: {self.lead.first_name} {self.lead.last_name} - Total Purchases: {self.total_purchases}"

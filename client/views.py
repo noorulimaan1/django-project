@@ -7,6 +7,11 @@ from accounts.models import Admin, Agent
 from client.forms import LeadForm, LeadModelForm
 from client.models import Lead
 
+from client.models import Lead 
+
+from rest_framework import viewsets
+
+from client.serializers import LeadSerializer
 
  
 
@@ -93,4 +98,10 @@ class LeadDeleteView(LoginRequiredMixin, View):
         lead = get_object_or_404(Lead, pk=pk)
         lead.delete()
         return redirect(reverse('client:lead-list'))
+
+
+
+class LeadViewSet(viewsets.ModelViewSet):
+    queryset = Lead.objects.all()
+    serializer_class = LeadSerializer
 

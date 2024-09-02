@@ -18,18 +18,17 @@ from django.contrib import admin
 from django.contrib.auth.views import LogoutView
 from django.urls import path, include
 
-from accounts.views import LandingPageView, landing_page, SignUpView, HomePageView
+from accounts.views import LandingPageView, HomePageView
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', LandingPageView.as_view(), name='landing-page'),
     path('home/', HomePageView.as_view(), name='home-page'),
-    path('client/', include('client.urls', namespace="client")), 
-    path('accounts/', include('accounts.urls', namespace="accounts")), 
-    # path('signup/', SignUpView.as_view(), name='signup'),
-    # path('login/', LoginView.as_view(), name='login'),
-    # path('logout/', LogoutView.as_view(), name='logout'),
+    path('client/', include('client.urls', namespace='client')), 
+    path('accounts/', include('accounts.urls', namespace='accounts')), 
+    path('api/accounts/', include('accounts.urls', namespace='accounts-api')),
+    path('api/client/', include('client.urls', namespace='client-api')),
     
 
 ]

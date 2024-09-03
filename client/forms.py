@@ -1,6 +1,7 @@
 from django import forms
-from .models import Lead
-from .constants import LEAD_CATEGORIES
+
+from client.models import Lead
+from client.constants import LEAD_CATEGORIES
 
 class LeadModelForm(forms.ModelForm):
     class Meta:
@@ -18,7 +19,7 @@ class LeadModelForm(forms.ModelForm):
         }
 
 class LeadForm(forms.Form):
-    name = forms.CharField(label = "Your Name", max_length=25)
+    name = forms.CharField(label = 'Your Name', max_length=25)
     email = forms.EmailField()
     age = forms.IntegerField(min_value=0)
     phone_number = forms.CharField(max_length=15)

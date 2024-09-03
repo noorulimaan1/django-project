@@ -1,76 +1,96 @@
-from django.shortcuts import render, redirect, reverse
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponse
-from django.views import generic
-from .models import Lead
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.core.paginator import Paginator
+from django.shortcuts import get_object_or_404, redirect, render, reverse
+from django.views import View
+
 from accounts.models import Admin, Agent
-from .forms import LeadModelForm, LeadForm
+from client.forms import LeadForm, LeadModelForm
+from client.models import Lead
+
+
+ 
 
 
 # Create your views here.
 
 
-class LeadListView(LoginRequiredMixin, generic.ListView):
-    template_name = "leads_list.html"
-    queryset = Lead.objects.all()
-    context_object_name = "leads"
+class LeadListView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        leads = Lead.objects.all().order_by('-name')  # Order by name descending
+        paginator = Paginator(leads, 10)  # Show 10 leads per page
 
-# class LeadListView(LoginRequiredMixin, generic.ListView):
-#     template_name = "leads_list.html"
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        context = {
+            'leads': page_obj.object_list,
+            'page_obj': page_obj
+        }
+        return render(request, 'leads_list.html', context)
+
+
+class LeadDetailView(LoginRequiredMixin, View):
+    def get(self, request, pk, *args, **kwargs):
+        lead = get_object_or_404(Lead, pk=pk)
+        context = {
+            'lead': lead
+        }
+        return render(request, 'lead_details.html', context)
+
+
+
+class LeadCreateView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        form = LeadModelForm()
+        context = {
+            'form': form
+        }
+        return render(request, 'lead_create.html', context)
     
-#     def get_queryset(self):
-#         user = self.request.user
-#         if user.admin_profile.exists():
-#             org = user.admin_profile.org
-#             return Lead.objects.filter(organization=org)
-#         elif user.agent_profile.exists():
-#             return Lead.objects.filter(agent=user.agent_profile)
-#         return Lead.objects.none()
+    def post(self, request, *args, **kwargs):
+        form = LeadModelForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect(reverse('client:lead-list'))
+        context = {
+            'form': form
+        }
+        return render(request, 'lead_create.html', context)
 
 
-class LeadDetailView(LoginRequiredMixin, generic.DetailView):
-    template_name = "lead_details.html"
-    queryset = Lead.objects.all()
-    context_object_name = "lead"
+class LeadUpdateView(LoginRequiredMixin, View):
+    def get(self, request, pk, *args, **kwargs):
+        lead = get_object_or_404(Lead, pk=pk)
+        form = LeadModelForm(instance=lead)
+        context = {
+            'form': form,
+            'lead': lead
+        }
+        return render(request, 'lead_update.html', context)
+
+    def post(self, request, pk, *args, **kwargs):
+        lead = get_object_or_404(Lead, pk=pk)
+        form = LeadModelForm(request.POST, instance=lead)
+        if form.is_valid():
+            form.save()
+            return redirect(reverse('client:lead-list'))
+        context = {
+            'form': form,
+            'lead': lead
+        }
+        return render(request, 'lead_update.html', context)
 
 
-# class LeadCreateView(LoginRequiredMixin, generic.CreateView):
-#     template_name = "lead_create.html"
-#     form_class = LeadModelForm
+class LeadDeleteView(LoginRequiredMixin, View):
+    def get(self, request, pk, *args, **kwargs):
+        lead = get_object_or_404(Lead, pk=pk)
+        context = {
+            'lead': lead
+        }
+        return render(request, 'lead_delete.html', context)
 
-#     def get_success_url(self):
-#         return reverse("client:lead-list")
-
-
-class LeadCreateView(LoginRequiredMixin, generic.CreateView):
-    template_name = "lead_create.html"
-    form_class = LeadModelForm
-
-    def get_success_url(self):
-        return reverse("client:lead-list")
-    
-    # def form_valid(self, form):
-    #     user = self.request.user
-    #     if user.admin_profile.exists():
-    #         form.instance.organization = user.admin_profile.org
-    #     elif user.agent_profile.exists():
-    #         form.instance.agent = user.agent_profile
-    #     return super().form_valid(form)
-
-
-class LeadUpdateView(LoginRequiredMixin, generic.UpdateView):
-    template_name = "lead_update.html"
-    queryset = Lead.objects.all()
-    form_class = LeadModelForm
-
-    def get_success_url(self):
-        return reverse("client:lead-list")
-
-
-class LeadDeleteView(LoginRequiredMixin, generic.DeleteView):
-    template_name = "lead_delete.html"
-    queryset = Lead.objects.all()
-
-    def get_success_url(self):
-        return reverse("client:lead-list")
+    def post(self, request, pk, *args, **kwargs):
+        lead = get_object_or_404(Lead, pk=pk)
+        lead.delete()
+        return redirect(reverse('client:lead-list'))
 

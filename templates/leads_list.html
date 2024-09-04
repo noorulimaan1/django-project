@@ -7,7 +7,7 @@
     <br>
     <h1>LEADS</h1>
     <ul>
-    {% for lead in client%}
+    {% for lead in leads %}
     <a href="{% url 'client:lead-details' lead.pk%}"> <li> {{lead}} </li> </a>
     {% endfor %}
     </ul>

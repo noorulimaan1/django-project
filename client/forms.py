@@ -1,6 +1,7 @@
 from django import forms
-from .models import Lead
-from .constants import LEAD_CATEGORIES
+
+from client.constants import LEAD_CATEGORIES
+from client.models import Lead
 
 class LeadModelForm(forms.ModelForm):
     class Meta:

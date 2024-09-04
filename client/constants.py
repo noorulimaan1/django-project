@@ -1,5 +1,3 @@
-# constants.py
-
 LEAD_CATEGORY_UNCONVERTED = "Unconverted"
 LEAD_CATEGORY_NEW = "New"
 LEAD_CATEGORY_CONTACTED = "Contacted"

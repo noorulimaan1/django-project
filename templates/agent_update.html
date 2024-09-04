@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content%}
+    <a href="{% url 'accounts:agent-details' agent.pk %}">Go back to agent</a>
+    <br>
+
+    <h1>UPDATE AGENT: {{ agent}}</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form }}
+        <button type="submit">submit</button>
+    </form>
+
+{% endblock content%}
+
+
+
+
+

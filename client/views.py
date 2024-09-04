@@ -1,9 +1,13 @@
-from django.shortcuts import render, redirect, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
+from django.shortcuts import render, redirect, reverse
 from django.views import generic
-from .models import Lead
-from .forms import LeadModelForm, LeadForm
+
+from client.forms import LeadModelForm, LeadForm
+from client.models import Lead
+
+from accounts.models import Admin, Agent
+
 
 
 # Create your views here.
@@ -12,7 +16,7 @@ from .forms import LeadModelForm, LeadForm
 class LeadListView(LoginRequiredMixin, generic.ListView):
     template_name = "leads_list.html"
     queryset = Lead.objects.all()
-    context_object_name = "client"
+    context_object_name = "leads"
 
 
 class LeadDetailView(LoginRequiredMixin, generic.DetailView):
@@ -44,4 +48,3 @@ class LeadDeleteView(LoginRequiredMixin, generic.DeleteView):
 
     def get_success_url(self):
         return reverse("client:lead-list")
-

@@ -1,11 +1,11 @@
-from typing import Any
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models.query import QuerySet
 from django.shortcuts import render, reverse
-from django.views.generic import TemplateView
 from django.views import generic
-from django.contrib.auth.mixins import LoginRequiredMixin
-from .forms import CustomUserCreationForm, AgentModelForm
-from .models import Agent, Admin
+from django.views.generic import TemplateView
+
+from accounts.forms import AgentModelForm, CustomUserCreationForm
+from accounts.models import Admin, Agent
 
 
 # Create your views here.
@@ -59,4 +59,3 @@ class AgentDeleteView(LoginRequiredMixin, generic.DeleteView):
 
     def get_success_url(self):
         return reverse("accounts:agent-list")
-

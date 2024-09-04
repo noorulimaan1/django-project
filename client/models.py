@@ -1,6 +1,7 @@
-from django.db import models
 from django.core.validators import MinValueValidator
-from .constants import LEAD_CATEGORIES, LEAD_CATEGORY_UNCONVERTED
+from django.db import models
+
+from client.constants import LEAD_CATEGORIES, LEAD_CATEGORY_UNCONVERTED
 
 
 
@@ -21,6 +22,3 @@ class Lead(models.Model):
 
     def __str__(self):
         return f"{self.name}"
-
-
-

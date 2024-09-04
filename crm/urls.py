@@ -17,14 +17,15 @@ Including another URLconf
 from django.contrib import admin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path, include
-from accounts.views import LandingPageView, landing_page, SignUpView
+
+from accounts.views import LandingPageView, SignUpView
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', LandingPageView.as_view(), name='landing-page'),
-    path('client/', include('client.urls', namespace="client")), 
-    path('accounts/', include('accounts.urls', namespace="accounts")), 
+    path('client/', include('client.urls', namespace='client')), 
+    path('accounts/', include('accounts.urls', namespace='accounts')), 
     path('signup/', SignUpView.as_view(), name='signup'),
     path('login/', LoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),

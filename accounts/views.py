@@ -98,23 +98,3 @@ class AgentDeleteView(AdminRequiredMixin, LoginRequiredMixin, DeleteView):
 
     def get_success_url(self):
         return reverse('accounts:agent-list')
-
-
-# class UserViewSet(viewsets.ModelViewSet):
-#     queryset = User.objects.all()
-#     serializer_class = UserSerializer
-
-
-# class OrganizationViewSet(viewsets.ModelViewSet):
-#     queryset = Organization.objects.all()
-#     serializer_class = OrganizationSerializer
-
-
-# class AgentViewSet(viewsets.ModelViewSet):
-#     queryset = Agent.objects.all()
-#     serializer_class = AgentSerializer
-
-
-# class AdminViewSet(viewsets.ModelViewSet):
-#     queryset = Admin.objects.all()
-#     serializer_class = AdminSerializer

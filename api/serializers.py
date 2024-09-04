@@ -1,8 +1,30 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
 from accounts.models import User, Organization, Agent, Admin
+
 from client.models import Lead, Customer
 
 
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        username = attrs.get('username', '')
+        password = attrs.get('password', '')
+
+        # Check if the username is an email
+        try:
+            user = User.objects.get(email=username)
+        except User.DoesNotExist:
+            # If not an email, fall back to using the username
+            user = User.objects.filter(username=username).first()
+
+        if user and user.check_password(password):
+            attrs['username'] = user.username
+        else:
+            raise serializers.ValidationError("Invalid credentials.")
+
+        return super().validate(attrs)
+    
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

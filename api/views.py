@@ -6,7 +6,8 @@ from api.serializers import (
     OrganizationSerializer,
     AgentSerializer,
     AdminSerializer,
-    LeadSerializer
+    LeadSerializer,
+    CustomTokenObtainPairSerializer,
 )
 from client.models import Lead
 
@@ -14,8 +15,16 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.views import TokenObtainPairView
+
 
 # Create your views here.
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+
 class UserViewSet(viewsets.ModelViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]

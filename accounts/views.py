@@ -19,7 +19,12 @@ from accounts.models import User, Organization, Agent, Admin
 
 from rest_framework import viewsets
 
-from accounts.serializers import UserSerializer, OrganizationSerializer, AgentSerializer, AdminSerializer
+from accounts.serializers import (
+    UserSerializer,
+    OrganizationSerializer,
+    AgentSerializer,
+    AdminSerializer,
+)
 
 
 class SignUpView(AdminRequiredMixin, CreateView):
@@ -70,9 +75,7 @@ class AgentListView(AdminRequiredMixin, LoginRequiredMixin, ListView):
     paginate_by = 4
 
     def get_queryset(self):
-        return Agent.objects.all().order_by(
-            '-created_at'
-        )  
+        return Agent.objects.all().order_by('-created_at')
 
 
 class AgentCreateView(AdminRequiredMixin, LoginRequiredMixin, CreateView):
@@ -104,22 +107,3 @@ class AgentDeleteView(AdminRequiredMixin, LoginRequiredMixin, DeleteView):
 
     def get_success_url(self):
         return reverse('accounts:agent-list')
-    
-
-
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
-
-class OrganizationViewSet(viewsets.ModelViewSet):
-    queryset = Organization.objects.all()
-    serializer_class = OrganizationSerializer
-
-class AgentViewSet(viewsets.ModelViewSet):
-    queryset = Agent.objects.all()
-    serializer_class = AgentSerializer
-
-class AdminViewSet(viewsets.ModelViewSet):
-    queryset = Admin.objects.all()
-    serializer_class = AdminSerializer

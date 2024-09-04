@@ -34,6 +34,6 @@ class LeadSerializer(serializers.ModelSerializer):
 
     def validate_age(self, value):
         if value < 0:
-            raise serializers.ValidationError("Age cannot be negative.")
+            raise serializers.ValidationError('Age cannot be negative.')
         return value
 

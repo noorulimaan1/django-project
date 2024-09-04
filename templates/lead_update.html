@@ -1,14 +1,14 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
 {% block content%}
-    <a href="{% url 'client:lead-details' lead.pk %}">Go back to Lead</a>
+    <a href='{% url 'client:lead-details' lead.pk %}'>Go back to Lead</a>
     <br>
 
     <h1>UPDATE LEAD: {{ lead}}</h1>
-    <form method="post">
+    <form method='post'>
         {% csrf_token %}
         {{ form }}
-        <button type="submit">submit</button>
+        <button type='submit'>submit</button>
     </form>
 
 {% endblock content%}

@@ -1,4 +1,4 @@
-from django.shortcuts import render, reverse, redirect
+from django.shortcuts import render,  reverse, redirect
 from django.views.generic import (
     TemplateView,
     CreateView,
@@ -16,15 +16,6 @@ from django.views import View
 from accounts.mixins import AdminRequiredMixin  # Import the custom mixin
 from accounts.forms import CustomUserCreationForm, AgentModelForm
 from accounts.models import User, Organization, Agent, Admin
-
-from rest_framework import viewsets
-
-from accounts.serializers import (
-    UserSerializer,
-    OrganizationSerializer,
-    AgentSerializer,
-    AdminSerializer,
-)
 
 
 class SignUpView(AdminRequiredMixin, CreateView):

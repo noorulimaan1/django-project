@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path
 
 from client.views import (
     LeadListView,
@@ -6,7 +6,6 @@ from client.views import (
     LeadCreateView,
     LeadUpdateView,
     LeadDeleteView,
-    LeadViewSet,
 )
 
 

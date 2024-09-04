@@ -76,8 +76,3 @@ class LeadDeleteView(LoginRequiredMixin, View):
         lead = get_object_or_404(Lead, pk=pk)
         lead.delete()
         return redirect(reverse('client:lead-list'))
-
-
-class LeadViewSet(viewsets.ModelViewSet):
-    queryset = Lead.objects.all()
-    serializer_class = LeadSerializer

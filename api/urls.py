@@ -18,6 +18,4 @@ urlpatterns = [
 
     # API routes
     path('', include(router.urls)),
-
-
 ]

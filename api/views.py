@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from rest_framework import viewsets
 
 from accounts.models import User, Organization, Agent, Admin
 
@@ -12,10 +12,6 @@ from api.serializers import (
 
 from client.models import Lead
 
-from rest_framework import viewsets
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication
 
 # Create your views here.
 class UserViewSet(viewsets.ModelViewSet):

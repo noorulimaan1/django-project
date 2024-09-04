@@ -40,9 +40,6 @@ class CustomLoginView(LoginView):
 
 
 class CustomLogoutView(View):
-    # def get(self, request, *args, **kwargs):
-    #     logout(request)
-    #     return redirect('landing-page')
 
     def post(self, request, *args, **kwargs):
         logout(request)
@@ -70,8 +67,6 @@ class AgentListView(AdminRequiredMixin, LoginRequiredMixin, ListView):
             '-created_at'
         )  # Order by creation date (most recent first)
 
-    # def get_queryset(self):
-    #     return Agent.objects.all()
 
 
 class AgentCreateView(AdminRequiredMixin, LoginRequiredMixin, CreateView):

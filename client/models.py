@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 
-from client.constants import LEAD_CATEGORIES, LEAD_CATEGORY_UNCONVERTED
+from client.constants import LEAD_CATEGORIES, LEAD_CATEGORY_NEW
 
 from accounts.models import Timestamp, User, Organization
 
@@ -26,7 +26,7 @@ class Lead(Timestamp):
 
     category = models.SmallIntegerField(
         choices=[(key, value) for key, value in LEAD_CATEGORIES.items()],
-        default=LEAD_CATEGORY_UNCONVERTED,
+        default=LEAD_CATEGORY_NEW,
     )
 
     def __str__(self):

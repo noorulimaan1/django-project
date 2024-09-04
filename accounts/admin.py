@@ -26,7 +26,7 @@ class CustomUserChangeForm(UserChangeForm):
         model = User
 
 
-class CustomUserCreationForm(UserCreationForm):
+class CustomAdminCreationForm(UserCreationForm):
     organization = forms.ModelChoiceField(
         queryset=Organization.objects.all(),
         required=False,
@@ -54,7 +54,7 @@ class CustomUserCreationForm(UserCreationForm):
 
 class CustomUserAdmin(BaseUserAdmin):
     form = CustomUserChangeForm
-    add_form = CustomUserCreationForm
+    add_form = CustomAdminCreationForm
     inlines = (AdminInline,)
 
     fieldsets = (
@@ -75,7 +75,6 @@ class CustomUserAdmin(BaseUserAdmin):
                 )
             },
         ),
-        # ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
 
     add_fieldsets = (

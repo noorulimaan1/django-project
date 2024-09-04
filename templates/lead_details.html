@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content%}
+
+    <a href='{% url 'client:lead-list' %}'>Go back</a>
+    <br>
+    <h1>LEAD DETAILS</h1>
+    <p>NAME: {{lead}} </p>
+    <p>AGENT: {{lead.agent}} </p>
+    <p>ORGANIZATION: {{lead.organization}} </p>
+    <p>CATEGORY: {{lead.category}} </p>
+
+    <br>
+    <br>
+    <a href = '{% url 'client:lead-update' lead.pk%}'>Update</a>
+    <a href = '{% url 'client:lead-delete' lead.pk%}'>Delete</a>
+
+{% endblock content%}
+
+

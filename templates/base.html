@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>CRM</title>
+    <link rel='stylesheet' href='styles.css'>
+
+</head>
+<body>
+{% if request.user.is_authenticated %}
+    Welcome, {{ request.user.username }}
+
+    {% if request.user.is_superuser %}
+        <a href='{% url 'accounts:signup' %}'>Sign Up</a>
+    {% endif %}
+
+    <form method='POST' action='{% url 'accounts:logout' %}' style='display:inline;'>
+        {% csrf_token %}
+        <button type='submit' style='background:none;border:none;color:blue;text-decoration:underline;cursor:pointer;'>Logout</button>
+    </form>
+{% else %}
+    <a href='{% url 'accounts:login' %}'>Login</a>
+{% endif %}
+
+<br>
+<hr>
+{% block content %}
+{% endblock content %}
+
+
+
+</body>
+</html>

@@ -1,9 +1,9 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
 {% block content%}
     <h1>HOME PAGE</h1>
-    <a href="{% url 'client:lead-list' %}"> LEADS </a>
+    <a href='{% url 'client:lead-list' %}'> LEADS </a>
     <br>
-    <a href="{% url 'accounts:agent-list' %}"> AGENTS </a>
+    <a href='{% url 'accounts:agent-list' %}'> AGENTS </a>
 {% endblock content%}
 

@@ -9,7 +9,7 @@ class LeadModelForm(forms.ModelForm):
         fields = {
             'agent',
             'organization',
-            'name',
+            'first_name',
             'age',
             'email',
             'phone_number',
@@ -19,7 +19,7 @@ class LeadModelForm(forms.ModelForm):
         }
 
 class LeadForm(forms.Form):
-    name = forms.CharField(label = 'Your Name', max_length=25)
+    first_name = forms.CharField(label = 'Your Name', max_length=25)
     email = forms.EmailField()
     age = forms.IntegerField(min_value=0)
     phone_number = forms.CharField(max_length=15)

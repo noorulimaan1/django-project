@@ -11,7 +11,6 @@ from accounts.views import (
     CustomLogoutView,
 )
 
-
 app_name = 'accounts'
 
 urlpatterns = [

@@ -4,6 +4,7 @@ from django.contrib.auth import logout
 from django.shortcuts import render, reverse, redirect
 from django.urls import reverse
 from django.views import View
+
 from django.views.generic import (
     TemplateView,
     CreateView,
@@ -15,7 +16,9 @@ from django.views.generic import (
 
 from accounts.mixins import AdminRequiredMixin  # Import the custom mixin
 from accounts.forms import CustomUserCreationForm, AgentModelForm
-from accounts.models import Agent
+
+from accounts.models import User, Organization, Agent, Admin
+
 
 
 class SignUpView(AdminRequiredMixin, CreateView):

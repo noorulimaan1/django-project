@@ -55,7 +55,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['first_name', 'last_name']
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'email']
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
@@ -71,11 +71,11 @@ class Admin(Timestamp):
     # department = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
-        return f'Admin: {self.user.email} - {self.org.name}'
+        return f'Admin: {self.user.username} - {self.org.name}'
 
 
 class Organization(Timestamp):
-    name = models.CharField(max_length=50)
+    name = models.CharField(unique=True, max_length=50)
     email = models.CharField(unique=True)
     address = models.TextField(blank=True, null=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)

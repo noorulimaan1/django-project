@@ -17,6 +17,8 @@ admin.site.register(Agent)
 # StackedInline: Displays the Admin fields in a stacked (vertical) format.
 
 
+
+
 class AdminInline(admin.StackedInline):
     model = Admin
     can_delete = False

@@ -8,7 +8,6 @@ from accounts.models import Timestamp, User, Organization
 
 # Create your models here.
 class Lead(Timestamp):
-
     agent = models.ForeignKey(
         'accounts.Agent', on_delete=models.CASCADE, related_name='leads_by_agent'
     )
@@ -17,7 +16,8 @@ class Lead(Timestamp):
         on_delete=models.CASCADE,
         related_name='leads_by_organization',
     )
-    name = models.CharField(max_length=25)
+    first_name = models.CharField(max_length=25)
+    last_name = models.CharField(max_length=25)
     age = models.IntegerField(
         validators=[MinValueValidator(0)], blank=True, null=True)
     email = models.EmailField()
@@ -30,7 +30,7 @@ class Lead(Timestamp):
     )
 
     def __str__(self):
-        return f'{self.name}'
+        return f'{self.first_name}'
 
 
 class Customer(Timestamp):
@@ -49,4 +49,5 @@ class Customer(Timestamp):
     last_purchase_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return f'Customer: {self.lead.first_name} {self.lead.last_name} - Total Purchases: {self.total_purchases}'
+        return f'Customer: {self.lead.first_name} - Total Purchases: {self.total_purchases}'
+        # return f'Customer: {self.lead.first_name} {self.lead.last_name} - Total Purchases: {self.total_purchases}'

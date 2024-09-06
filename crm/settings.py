@@ -101,7 +101,7 @@ DATABASES = {
     # }
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'dbcrm',
+        'NAME': 'crm',
         'USER' : 'postgres',
         'PASSWORD' : 'django123',
         'HOST' : 'localhost',

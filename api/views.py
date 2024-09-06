@@ -1,8 +1,14 @@
+from django.shortcuts import render
 from django.http import Http404
 
 from rest_framework import generics, viewsets, status
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+
 from rest_framework.exceptions import NotFound
 from rest_framework.views import APIView
 
@@ -14,16 +20,36 @@ from api.serializers import (
     AgentSerializer,
     AdminSerializer,
     LeadSerializer, 
-    CustomerSerializer
+    CustomerSerializer,
+    LeadSerializer,
+    CustomTokenObtainPairSerializer,
 )
+
+
 
 from client.models import Lead, Customer
 
 
 # Create your views here.
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+
 class UserViewSet(viewsets.ModelViewSet):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+    def get(self, request):
+        content = {'message': 'Hello, World!'}
+        return Response(content)
+# class UserViewSet(viewsets.ModelViewSet):
+#     queryset = User.objects.all()
+#     serializer_class = UserSerializer
+
 
 
 class OrganizationViewSet(viewsets.ModelViewSet):
@@ -35,6 +61,14 @@ class AgentViewSet(viewsets.ModelViewSet):
     queryset = Agent.objects.all()
     serializer_class = AgentSerializer
 
+
+class AdminViewSet(viewsets.ModelViewSet):
+    queryset = Admin.objects.all()
+    serializer_class = AdminSerializer
+
+class LeadViewSet(viewsets.ModelViewSet):
+    queryset = Lead.objects.all()
+    serializer_class = LeadSerializer
 
 class LeadsByAgentView(generics.ListAPIView):
     serializer_class = LeadSerializer
@@ -131,3 +165,4 @@ class LeadDeleteView(APIView):
 class CustomerViewSet(viewsets.ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
+

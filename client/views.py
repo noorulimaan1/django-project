@@ -1,9 +1,8 @@
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render, reverse
 from django.views import View
 
-from accounts.models import Admin, Agent
 from client.forms import LeadForm, LeadModelForm
 from client.models import Lead
 
@@ -12,13 +11,13 @@ from client.models import Lead
 from rest_framework import viewsets
 
 
-# Create your views here.
 
+# Create your views here.
 
 class LeadListView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        leads = Lead.objects.all().order_by('-name')  # Order by name descending
-        paginator = Paginator(leads, 10)  # Show 10 leads per page
+        leads = Lead.objects.all().order_by('-name') 
+        paginator = Paginator(leads, 10) 
 
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
@@ -76,3 +75,4 @@ class LeadDeleteView(LoginRequiredMixin, View):
         lead = get_object_or_404(Lead, pk=pk)
         lead.delete()
         return redirect(reverse('client:lead-list'))
+

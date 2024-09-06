@@ -1,13 +1,34 @@
 from rest_framework import serializers
 
+
 from django.utils.crypto import get_random_string
 from django.contrib.auth.hashers import make_password
-
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from accounts.models import User, Admin, Agent, Organization
 from client.models import Lead, Customer
 from client.constants import LEAD_CATEGORY_CONVERTED
 from datetime import date
 
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        username = attrs.get('username', '')
+        password = attrs.get('password', '')
+
+        # Check if the username is an email
+        try:
+            user = User.objects.get(email=username)
+        except User.DoesNotExist:
+            # If not an email, fall back to using the username
+            user = User.objects.filter(username=username).first()
+
+        if user and user.check_password(password):
+            attrs['username'] = user.username
+        else:
+            raise serializers.ValidationError("Invalid credentials.")
+
+        return super().validate(attrs)
+      
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -26,6 +47,7 @@ class UserSerializer(serializers.ModelSerializer):
             'address',
             'phone_number',
         ]
+
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
@@ -62,6 +84,7 @@ class AgentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Hire date cannot be before January 1, 2024.")
 
         return agent
+
 
 
 class AdminSerializer(serializers.ModelSerializer):
@@ -126,7 +149,6 @@ class LeadSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Age cannot be negative.')
         return value
 
-
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
@@ -148,4 +170,3 @@ class CustomerSerializer(serializers.ModelSerializer):
 
         return customer
     
-

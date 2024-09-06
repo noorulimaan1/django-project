@@ -1,17 +1,20 @@
+from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
-from django import forms
 
 from accounts.models import User, Organization, Admin, Agent
 
 
 # Register your models here.
-# admin.site.register(User)
+
 admin.site.register(Organization)
 admin.site.register(Admin)
 admin.site.register(Agent)
 
+
+# AdminInline: This is a way to include the Admin model inside the User admin interface.
+# StackedInline: Displays the Admin fields in a stacked (vertical) format.
 
 
 
@@ -20,7 +23,7 @@ class AdminInline(admin.StackedInline):
     model = Admin
     can_delete = False
     verbose_name_plural = 'Admin Profile'
-    fk_name = 'user'
+    fk_name = 'user'  # Specifies that the Admin model is related to the User model via a foreign key.
 
 
 class CustomUserChangeForm(UserChangeForm):
@@ -54,6 +57,7 @@ class CustomUserCreationForm(UserCreationForm):
         return user
 
 
+# Customizes how the User model is displayed and managed in the admin interface.
 class CustomUserAdmin(BaseUserAdmin):
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm
@@ -77,7 +81,6 @@ class CustomUserAdmin(BaseUserAdmin):
                 )
             },
         ),
-        # ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
 
     add_fieldsets = (

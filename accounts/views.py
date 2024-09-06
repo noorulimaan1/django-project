@@ -1,4 +1,10 @@
-from django.shortcuts import render,  reverse, redirect
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import LoginView
+from django.contrib.auth import logout
+from django.shortcuts import render, reverse, redirect
+from django.urls import reverse
+from django.views import View
+
 from django.views.generic import (
     TemplateView,
     CreateView,
@@ -7,15 +13,12 @@ from django.views.generic import (
     DetailView,
     DeleteView,
 )
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.views import LoginView
-from django.urls import reverse
-from django.contrib.auth import logout
-from django.views import View
 
 from accounts.mixins import AdminRequiredMixin  # Import the custom mixin
 from accounts.forms import CustomUserCreationForm, AgentModelForm
+
 from accounts.models import User, Organization, Agent, Admin
+
 
 
 class SignUpView(AdminRequiredMixin, CreateView):

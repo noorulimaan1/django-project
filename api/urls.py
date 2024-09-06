@@ -11,13 +11,17 @@ from api.views import (
     LeadCreateView,
     LeadDetailView,
     LeadUpdateView,
-    LeadDeleteView
+    LeadDeleteView,
+    CustomerViewSet,
+    LeadsByAgentView,
+    LeadsOfAgentByCategoryView
 )
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet)
 router.register(r'organizations', OrganizationViewSet)
 router.register(r'agents', AgentViewSet)
+router.register(r'customer', CustomerViewSet)
 
 
 app_name = 'api'
@@ -32,5 +36,9 @@ urlpatterns = [
     path('leads/<int:pk>/', LeadDetailView.as_view(), name='lead-detail'),
     path('leads/<int:pk>/update/', LeadUpdateView.as_view(), name='lead-update'),
     path('leads/<int:pk>/delete/', LeadDeleteView.as_view(), name='lead-delete'),
+    path('agents/<int:agent_id>/leads/', LeadsByAgentView.as_view(), name='leads-by-agent'),
+    path('agents/<int:agent_id>/leads/category/<str:category>/', LeadsOfAgentByCategoryView.as_view(), name='leads-of-agent-by-category'),
+
+
 
 ]

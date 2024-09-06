@@ -2,6 +2,8 @@ from django.http import Http404
 
 from rest_framework import generics, viewsets, status
 from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.exceptions import NotFound
 from rest_framework.views import APIView
 
 from accounts.models import User, Organization, Agent, Admin
@@ -11,10 +13,11 @@ from api.serializers import (
     OrganizationSerializer,
     AgentSerializer,
     AdminSerializer,
-    LeadSerializer
+    LeadSerializer, 
+    CustomerSerializer
 )
 
-from client.models import Lead
+from client.models import Lead, Customer
 
 
 # Create your views here.
@@ -27,13 +30,41 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer
 
+
 class AgentViewSet(viewsets.ModelViewSet):
     queryset = Agent.objects.all()
     serializer_class = AgentSerializer
 
+
+class LeadsByAgentView(generics.ListAPIView):
+    serializer_class = LeadSerializer
+
+    def get_queryset(self):
+        agent_id = self.kwargs.get('agent_id')
+        try:
+            agent = Agent.objects.get(pk=agent_id)
+        except Agent.DoesNotExist:
+            raise NotFound(f"Agent with id {agent_id} does not exist.")
+        
+        return Lead.objects.filter(agent=agent)
+
+class LeadsOfAgentByCategoryView(APIView):
+    
+    def get(self, request, agent_id, category, format=None):
+        try:
+            agent = Agent.objects.get(pk=agent_id)
+        except Agent.DoesNotExist:
+            raise NotFound(f"Agent with id {agent_id} does not exist.")
+        
+        leads = Lead.objects.filter(agent=agent, category=category)
+        serializer = LeadSerializer(leads, many=True)
+        return Response(serializer.data)
+
+
 class AdminListView(generics.ListAPIView):
     queryset = Admin.objects.all()
     serializer_class = AdminSerializer
+
 
 class LeadListView(APIView):
 
@@ -42,6 +73,7 @@ class LeadListView(APIView):
         serializer = LeadSerializer(leads, many=True)
         return Response(serializer.data)
     
+
 class LeadCreateView(APIView):
 
     def post(self, request):
@@ -51,6 +83,7 @@ class LeadCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+
 class LeadDetailView(APIView):
 
     def get_object(self, pk):
@@ -93,3 +126,8 @@ class LeadDeleteView(APIView):
         lead = self.get_object(pk)
         lead.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+class CustomerViewSet(viewsets.ModelViewSet):
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer

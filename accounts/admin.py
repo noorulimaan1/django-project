@@ -14,6 +14,8 @@ admin.site.register(Agent)
 
 
 
+
+
 class AdminInline(admin.StackedInline):
     model = Admin
     can_delete = False

@@ -9,9 +9,12 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
-from pathlib import Path
+from celery.schedules import crontab
 from datetime import timedelta
+from decouple import config
+from pathlib import Path
+import os
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -42,6 +45,8 @@ INSTALLED_APPS = [
     'api',
     'rest_framework',
     'rest_framework_simplejwt',
+    'django_celery_beat',
+    'django_celery_results',
 ]
 
 REST_FRAMEWORK = {
@@ -155,3 +160,57 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.User'
 LOGIN_REDIRECT_URL = '/client/'
 LOGIN_URL = '/login'
+
+# CELERY_BROKER_URL = 'amqp://localhost//'
+# CELERY_RESULT_BACKEND = 'rpc://'   
+
+# CELERY_BROKER_URL = 'redis://localhost:16379/0'  # Redis as the broker
+
+# CELERY_RESULT_BACKEND = "django-db" 
+
+# CELERY_BROKER_REDIS_URL="redis://localhost:16379"
+# DEBUG=True
+
+# CELERY_BROKER_URL = config('CELERY_BROKER_REDIS_URL', default='redis://localhost:16379')
+
+
+# SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+# SESSION_CACHE_ALIAS = "default"
+
+
+# CELERY_BEAT_SCHEDULE = {
+#     'ingest-leads-every-4-hours': {
+#         'task': 'api.tasks.ingest_leads',
+#         'schedule': crontab(minute=0, hour='*/4'), 
+#     },
+# }
+
+# CELERY_BEAT_SCHEDULE = {
+#     'ingest-leads-every-2-minutes': {
+#         'task': 'api.tasks.ingest_leads',
+#         'schedule': crontab(minute='*/2'),  # Every 2 minutes
+#     },
+# }
+
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379'
+CELERY_TIMEZONE = 'Asia/Karachi'
+
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    }
+}
+
+MEDIA_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'mediafiles')
+
+MEDIA_URL = '/media/'

@@ -39,13 +39,16 @@ class UserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 
+def upload_to(instance, filename):
+    return 'images/{filename}'.format(filename=filename)
+
 class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     username = models.CharField(max_length=30, unique=True)
     email = models.EmailField(blank=True, null=True)
     age = models.IntegerField(validators=[MinValueValidator(0)], blank=True, null=True)
-    profile_photo = models.ImageField(blank=True, null=True)
+    profile_photo = models.ImageField(upload_to=upload_to, blank=True, null=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_of_birth = models.DateField(blank=True, null=True)
@@ -74,13 +77,15 @@ class Admin(Timestamp):
         return f'Admin: {self.user.username} - {self.org.name}'
 
 
+
+
 class Organization(Timestamp):
     name = models.CharField(unique=True, max_length=50)
     email = models.CharField(unique=True)
     address = models.TextField(blank=True, null=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     website = models.URLField(blank=True, null=True)
-    logo = models.ImageField(blank=True, null=True)
+    logo = models.ImageField(upload_to=upload_to, blank=True, null=True)
 
     def __str__(self):
         return f'{self.name}'
@@ -94,6 +99,13 @@ class Agent(Timestamp):
         'Organization', on_delete=models.CASCADE, related_name='agents'
     )
     hire_date = models.DateField(null=True, blank=True)
+    profile_photo = models.ImageField(upload_to=upload_to, blank=True, null=True)
+    
+        
+    def form_valid(self, form):
+        form.instance.org = self.request.user.admin_profile.org
+        return super().form_valid(form)
+
 
     def __str__(self):
         return f'{self.user.first_name} {self.user.last_name}'

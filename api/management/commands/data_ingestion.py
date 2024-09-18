@@ -26,9 +26,9 @@ class Command(BaseCommand):
 
             for result in results:
                 if 'error' in result:
-                    self.stdout.write(f"Error for {result['email']}: {result['error']}")
+                    self.stdout.write(f'Error for {result['email']}: {result['error']}')
                 else:
-                    self.stdout.write(f"{result['action']} lead: {result['email']}")
+                    self.stdout.write(f'{result['action']} lead: {result['email']}')
              
         except FileNotFoundError:
             raise CommandError(f'File not found: {leads_data_path}')

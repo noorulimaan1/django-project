@@ -47,7 +47,7 @@ class LeadCreateView(LeadAccessMixin, View):
                 agent = get_object_or_404(Agent, user=request.user)
                 lead.organization = agent.org
             else:
-                raise PermissionDenied("User does not have an associated organization.")
+                raise PermissionDenied('User does not have an associated organization.')
 
             lead.save()
             return redirect(reverse('client:lead-list'))

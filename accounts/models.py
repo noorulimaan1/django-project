@@ -6,6 +6,11 @@ from django.contrib.auth.models import (
 )
 from django.db import models
 
+from accounts.constants import (
+    ROLE_CHOICES,
+    AGENT, 
+  
+)
 
 # Create your models here.
 class Timestamp(models.Model):
@@ -42,6 +47,7 @@ class UserManager(BaseUserManager):
 def upload_to(instance, filename):
     return 'images/{filename}'.format(filename=filename)
 
+
 class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
@@ -50,10 +56,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     age = models.IntegerField(validators=[MinValueValidator(0)], blank=True, null=True)
     profile_photo = models.ImageField(upload_to=upload_to, blank=True, null=True)
     is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)  
     date_of_birth = models.DateField(blank=True, null=True)
     address = models.TextField(blank=True, null=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
+
+    role = models.SmallIntegerField(choices=ROLE_CHOICES, default=AGENT)
 
     objects = UserManager()
 
@@ -71,17 +79,14 @@ class Admin(Timestamp):
     org = models.OneToOneField(
         'Organization', on_delete=models.CASCADE, related_name='admin'
     )
-    # department = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
         return f'Admin: {self.user.username} - {self.org.name}'
 
 
-
-
 class Organization(Timestamp):
     name = models.CharField(unique=True, max_length=50)
-    email = models.CharField(unique=True)
+    email = models.CharField(unique=True, max_length=50)
     address = models.TextField(blank=True, null=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     website = models.URLField(blank=True, null=True)
@@ -100,12 +105,10 @@ class Agent(Timestamp):
     )
     hire_date = models.DateField(null=True, blank=True)
     profile_photo = models.ImageField(upload_to=upload_to, blank=True, null=True)
-    
-        
+
     def form_valid(self, form):
         form.instance.org = self.request.user.admin_profile.org
         return super().form_valid(form)
-
 
     def __str__(self):
         return f'{self.user.first_name} {self.user.last_name}'

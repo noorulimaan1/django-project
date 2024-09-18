@@ -1,9 +1,13 @@
-import json
 from django.core.management.base import BaseCommand, CommandError
+from django.core.exceptions import ValidationError
+import json
+
+from api.utilities import ingest_leads
+
 
 from accounts.models import Agent, Organization
 from client.models import Lead
-from django.core.exceptions import ValidationError
+
 
 class Command(BaseCommand):
     help = ' Gets all the leads from a JSON file and ingests it into the database'
@@ -18,36 +22,17 @@ class Command(BaseCommand):
             with open(leads_data_path, 'r') as file:
                 data = json.load(file) 
 
-            for lead_data in data:
-                try:
-                    agent = Agent.objects.get(id=lead_data.get('agent'))
-                    organization = Organization.objects.get(id=lead_data.get('organization'))
+            results = ingest_leads(data)
 
-                    lead, created = Lead.objects.update_or_create(
-                        email=lead_data['email'],
-                        defaults={
-                            'first_name': lead_data.get('first_name', ''),
-                            'last_name': lead_data.get('last_name', ''),
-                            'age': lead_data.get('age', None),
-                            'phone_number': lead_data.get('phone_number', ''),
-                            'address': lead_data.get('address', ''),
-                            'category': lead_data.get('category', 2),
-                            'agent': agent,
-                            'organization': organization  
-                        }
-                    )
-                    action = 'Created' if created else 'Updated'
-                    self.stdout.write(f'{action} lead: {lead_data["email"]}')
-                except ValidationError as e:
-                    self.stdout.write(f'Validation error for lead {lead_data.get("email")}: {str(e)}')
-                except KeyError as e:
-                    self.stdout.write(f'Missing key {e} in lead data')
-
+            for result in results:
+                if 'error' in result:
+                    self.stdout.write(f"Error for {result['email']}: {result['error']}")
+                else:
+                    self.stdout.write(f"{result['action']} lead: {result['email']}")
+             
         except FileNotFoundError:
             raise CommandError(f'File not found: {leads_data_path}')
         except json.JSONDecodeError:
             raise CommandError(f'Error decoding JSON file: {leads_data_path}')
         except Exception as e:
             raise CommandError(f'An error occurred: {str(e)}')
-
-#python manage.py data_ingestion data/leads_data.json

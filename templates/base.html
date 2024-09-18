@@ -12,9 +12,9 @@
 {% if request.user.is_authenticated %}
     Welcome, {{ request.user.username }}
 
-    {% if request.user.is_superuser %}
+    {% comment %} {% if request.user.role == 1 %}
         <a href='{% url 'accounts:signup' %}'>Sign Up</a>
-    {% endif %}
+    {% endif %} {% endcomment %}
 
     <form method='POST' action='{% url 'accounts:logout' %}' style='display:inline;'>
         {% csrf_token %}

@@ -6,7 +6,7 @@ class IsAdminUser(permissions.BasePermission):
         return bool(
             request.user
             and request.user.is_authenticated
-            and hasattr(request.user, "admin_profile")
+            and hasattr(request.user, 'admin_profile')
         )
 
 
@@ -17,7 +17,7 @@ class IsAgentOrAdminUser(permissions.BasePermission):
             request.user
             and request.user.is_authenticated
             and (
-                hasattr(request.user, "agent_profile")
-                or hasattr(request.user, "admin_profile")
+                hasattr(request.user, 'agent_profile')
+                or hasattr(request.user, 'admin_profile')
             )
         )

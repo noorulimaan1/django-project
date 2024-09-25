@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content%}
+
+    <a href='{% url 'client:customer-list' %}'>Go back</a>
+    <br>
+    <h1>CUSTOMER DETAILS</h1>
+
+
+    <p>ID: {{customer.pk}}</p>
+    <p>NAME: {{customer.lead.first_name}} {{customer.lead.last_name}}</p>
+    <p>AGENT: {{customer.lead.agent}} </p>
+    <p>ORGANIZATION: {{customer.org}} </p>
+    <p>TOTAL PURCHASES: {{customer.total_purchases}} </p>
+    {% if customer.first_purchase %}
+    <p>FIRST PURCHASE DATE: {{customer.first_purchase_date}} </p>
+    {% endif %}
+    {% if customer.first_purchase %}
+    <p>LAST PURCHASE DATE: {{customer.last_purchase_date}} </p>
+    {% endif %}
+
+    <br>
+    <br>
+    {% comment %} <a href = '{% url 'client:customer-update' customer.pk%}'>Update</a>
+    <a href = '{% url 'client:customer-delete' customer.pk%}'>Delete</a> {% endcomment %}
+
+{% endblock content%}
+
+

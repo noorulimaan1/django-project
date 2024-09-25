@@ -6,6 +6,7 @@ from accounts.models import Agent, Admin, Organization
 from client.models import Lead, Customer
 
 
+
 class LeadsOrgRestrictedMixin:
     def get_queryset(self):
         user = self.request.user
@@ -80,10 +81,14 @@ class CustomerOrgRestrictedMixin:
         user = self.request.user
         if hasattr(user, 'admin_profile'):
             return Customer.objects.filter(org=user.admin_profile.org)
-
+        elif hasattr(user, 'agent_profile'):
+            return Customer.objects.filter(lead__agent=user.agent_profile)
+    
         return Customer.objects.none()
 
 
-
-
-
+class SuperuserRequiredMixin:
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            raise PermissionDenied("You do not have permission to access this resource.")
+        return super().dispatch(request, *args, **kwargs)

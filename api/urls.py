@@ -34,7 +34,7 @@ router.register(r'admins', AdminViewSet)
 app_name = 'api'
 
 urlpatterns = [
-    path('', include(router.urls)),
+    
     path('token/', UserTokenView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('leads/create/', LeadCreateView.as_view(), name='lead-create'),
@@ -53,5 +53,8 @@ urlpatterns = [
         name='leads-of-agent-by-category',
     ),
     path('leads/ingest/', LeadIngestionView.as_view(), name='lead-ingestion'),
+    path('', include(router.urls)),
 
 ]
+
+

@@ -3,14 +3,19 @@
 {% block content%}
     <a href='{% url 'accounts:agent-create' %}'>Create an agent</a>
     <br>
-    <h1>AGENTS</h1>
-    <ul>
-    {% for agent in object_list%}
-    <a href='{% url 'accounts:agent-details' agent.pk%}'> 
-    <li> {{agent.user.username}} </li> 
-    </a>
-    {% endfor %}
-    </ul>
+    {% if object_list %}
+        <h1>AGENTS</h1>
+        <ul>
+        {% for agent in object_list%}
+            <a href='{% url 'accounts:agent-details' agent.pk%}'> 
+                <li> {{agent.user.username}} </li> 
+            </a>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>There are no agents yet.</p>
+    {% endif %}
+
 
 {% if is_paginated %}
 <div class='pagination'>

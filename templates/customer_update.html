@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 
 {% block content%}
-    <a href='{% url 'accounts:agent-details' agent.pk %}'>Go back to agent</a>
+    <a href='{% url 'client:customer-details' customer.pk %}'>Go back to customer</a>
     <br>
 
-    <h1>UPDATE AGENT: {{ agent}}</h1>
+    <h1>UPDATE CUSTOMER: {{ customer}}</h1>
     <form method='post'>
         {% csrf_token %}
-        {{ form.as_p }}
+        {{ form }}
         <button type='submit'>submit</button>
     </form>
 

@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import UserCreationForm
 
 from accounts.models import User, Organization, Admin, Agent
-from accounts.constants import ROLE_CHOICES, ADMIN
+from accounts.constants import ADMIN
 
 # Register your models here.
 
@@ -26,13 +26,6 @@ class CustomAdminCreationForm(UserCreationForm):
         required=False,
         help_text='Select an organization or create a new one.',
     )
-
-    # role = forms.ChoiceField(
-    #     choices=ROLE_CHOICES,
-    #     required=True,
-    #     help_text='Select a role for the user.',
-    # )
-
 
     class Meta(UserCreationForm.Meta):
         model = User
@@ -71,8 +64,6 @@ class CustomUserAdmin(BaseUserAdmin):
             'Permissions',
             {
                 'fields': (
-                    'is_active',
-                    'is_staff',
                     'groups',
                     'user_permissions',
                 )
@@ -97,7 +88,6 @@ class CustomUserAdmin(BaseUserAdmin):
                     'date_of_birth',
                     'address',
                     'phone_number',
-                    # 'role',
                     'organization',
                 ),
             },

@@ -22,23 +22,25 @@ class Command(BaseCommand):
             return
 
         try:
-            user = (
-                User.objects.filter(username=user_input, is_staff=True).first()
-                or User.objects.filter(email=user_input, is_staff=True).first()
-            )
+            # Try to get the user by username first, fallback to email if not found
+            try:
+                user = User.objects.get(username=user_input)
+            except User.DoesNotExist:
+                user = User.objects.get(email=user_input)
 
-            if not user:
-                raise User.DoesNotExist
+            # Ensure the user is an admin
+            if user.role != 1:
+                raise CommandError('The user is not an admin.')
 
+            # Set the new password and save the user
             user.set_password(default_password)
             user.save()
 
             self.stdout.write(
-                f'Successfully reset password for admin user: {user.username}'
+                self.style.SUCCESS(f'Successfully reset password for admin user: {user.username}')
             )
 
         except User.DoesNotExist:
-            raise CommandError(f'The admin does not exist.')
-
+            raise CommandError('The admin does not exist.')
         except Exception as e:
             raise CommandError(f'An error occurred: {str(e)}')

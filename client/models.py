@@ -38,30 +38,33 @@ class Lead(Timestamp):
     def clean(self):
         super().clean()
 
-        if self.pk:  # if it's an exisiting lead or not
+        if self.pk:  # if it's an existing lead
             previous_lead = Lead.objects.get(pk=self.pk)
-            if previous_lead.category == LEAD_CATEGORY_NEW:
-                if self.category not in [
-                    LEAD_CATEGORY_CONTACTED,
-                    LEAD_CATEGORY_UNCONVERTED,
-                ]:
-                    raise ValidationError(
-                        'Lead status must transition from New to Contacted or Unconverted.'
-                    )
 
-            elif previous_lead.category == LEAD_CATEGORY_CONTACTED:
-                if self.category not in [
-                    LEAD_CATEGORY_CONVERTED,
-                    LEAD_CATEGORY_UNCONVERTED,
-                ]:
-                    raise ValidationError(
-                        'Lead status must transition from Contacted to Converted or Unconverted.'
-                    )
+            # Only check category if it is being changed
+            if self.category != previous_lead.category:
+                if previous_lead.category == LEAD_CATEGORY_NEW:
+                    if self.category not in [
+                        LEAD_CATEGORY_CONTACTED,
+                        LEAD_CATEGORY_UNCONVERTED,
+                    ]:
+                        raise ValidationError(
+                            'Lead status must transition from New to Contacted or Unconverted.'
+                        )
 
-            elif previous_lead.category == LEAD_CATEGORY_CONVERTED:
-                raise ValidationError(
-                    'Lead status cannot be changed once it is Converted.'
-                )
+                elif previous_lead.category == LEAD_CATEGORY_CONTACTED:
+                    if self.category not in [
+                        LEAD_CATEGORY_CONVERTED,
+                        LEAD_CATEGORY_UNCONVERTED,
+                    ]:
+                        raise ValidationError(
+                            'Lead status must transition from Contacted to Converted or Unconverted.'
+                        )
+
+                elif previous_lead.category == LEAD_CATEGORY_CONVERTED:
+                    raise ValidationError(
+                        'Lead status cannot be changed once it is Converted.'
+                    )
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -79,11 +82,14 @@ class Customer(Timestamp):
         Organization, on_delete=models.CASCADE, related_name='customers'
     )
     lead = models.OneToOneField(
-        'client.Lead', on_delete=models.CASCADE, related_name='customer_lead'
+        'client.Lead', on_delete=models.CASCADE, related_name='customer_lead', blank=True, null=True
     )
-    total_purchases = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    total_purchases = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, null=True)
     first_purchase_date = models.DateField(null=True, blank=True)
     last_purchase_date = models.DateField(null=True, blank=True)
+    agent = models.ForeignKey(
+        'accounts.Agent', on_delete=models.CASCADE, related_name='customer_by_agent', blank=True, null=True
+    )
 
     def __str__(self):
-        return f'Customer: {self.lead.first_name} - Total Purchases: {self.total_purchases}'
+        return f'{self.user.first_name} {self.user.last_name}'

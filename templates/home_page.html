@@ -1,9 +1,20 @@
 {% extends 'base.html' %}
 
 {% block content%}
+
     <h1>HOME PAGE</h1>
+
+    {% if request.user.role == 1 %}
+
+    <a href='{% url 'accounts:agent-list' %}'> AGENTS </a>
+    <br>
+
+    {% endif %}
+
     <a href='{% url 'client:lead-list' %}'> LEADS </a>
     <br>
-    <a href='{% url 'accounts:agent-list' %}'> AGENTS </a>
+
+    <a href='{% url 'client:customer-list' %}'> CUSTOMERS </a>
+
 {% endblock content%}
 

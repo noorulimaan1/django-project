@@ -4,17 +4,29 @@
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <title>CRM</title>
-    <link rel='stylesheet' href='styles.css'>
+    <link rel='stylesheet' href='./styles.css'>
 
 </head>
  
 <body>
 {% if request.user.is_authenticated %}
-    Welcome, {{ request.user.username }}
+    Welcome, <b>{{ request.user.first_name }} {{ request.user.last_name }} </b>
+    <br>
+        {% if request.user.profile_photo %}
+            <img src="{{ request.user.profile_photo.url }}" alt="{{ request.user.username }}'s Profile Photo" style="width:20px; height:20px; border-radius:50%;">
+        {% endif %}
+    {% if request.user.role == 1 %}
+        <b>Organization: {{ request.user.admin_profile.org.name }}</b> 
+        <br><br>
+        <a href='{% url 'home-page' %}'>Home</a>
+    {% elif  request.user.role == 2 %}
+        <p>Organization: {{ request.user.agent_profile.org.name }}</p> 
+        <a href="{% url 'accounts:agent-update' request.user.agent_profile.pk %}">Update Your Profile</a> 
 
-    {% comment %} {% if request.user.role == 1 %}
-        <a href='{% url 'accounts:signup' %}'>Sign Up</a>
-    {% endif %} {% endcomment %}
+    {% endif %}
+    
+
+
 
     <form method='POST' action='{% url 'accounts:logout' %}' style='display:inline;'>
         {% csrf_token %}

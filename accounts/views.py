@@ -1,6 +1,9 @@
+from django import forms
+from django.http import HttpResponseForbidden
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.contrib.auth import logout
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, reverse, redirect, get_object_or_404
 
 from django.urls import reverse
@@ -15,9 +18,9 @@ from django.views.generic import (
     DeleteView,
 )
 
-from accounts.mixins import AdminRequiredMixin  
-from accounts.forms import CustomUserCreationForm
-from accounts.constants import ADMIN
+from accounts.mixins import AdminRequiredMixin, AdminOrAgentsRequiredMixin, AdminOrAgentRequiredMixin
+from accounts.forms import CustomUserCreationForm, AgentUpdateForm
+from accounts.constants import ADMIN, AGENT
 from accounts.models import Agent, Admin
 
 
@@ -34,7 +37,7 @@ class CustomLoginView(LoginView):
 
     def get_success_url(self):
         user = self.request.user
-        if user.role == ADMIN: 
+        if user.role == ADMIN or AGENT: 
             return reverse('home-page') 
         else:
             return reverse(
@@ -53,46 +56,80 @@ class LandingPageView(TemplateView):
     template_name = 'landing_page.html'
 
 
-class HomePageView(TemplateView):
+class HomePageView(AdminOrAgentsRequiredMixin, TemplateView):
     template_name = 'home_page.html'
 
 
 class AgentListView(AdminRequiredMixin, LoginRequiredMixin, ListView):
     template_name = 'agent_list.html'
-    paginate_by = 4
+    paginate_by = 5
 
     def get_queryset(self):
         admin = get_object_or_404(Admin, user=self.request.user)
         return Agent.objects.filter(org=admin.org).order_by('-created_at')
 
 
-class AgentCreateView(AdminRequiredMixin, LoginRequiredMixin, CreateView):
+class AgentCreateView( LoginRequiredMixin, CreateView):
     template_name = 'agent_create.html'
     form_class = CustomUserCreationForm
 
+    def form_valid(self, form):
+        # Save the user and agent
+        return super().form_valid(form)
+    
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         admin = get_object_or_404(Admin, user=self.request.user)
         kwargs['admin_org'] = admin.org
         return kwargs
 
-
     def get_success_url(self):
         return reverse('accounts:agent-list')
     
 
 
-class AgentUpdateView(AdminRequiredMixin, LoginRequiredMixin, UpdateView):
+class AgentUpdateView(AdminOrAgentRequiredMixin, LoginRequiredMixin, UpdateView):
     template_name = 'agent_update.html'
-    # queryset = Agent.objects.all()
-    form_class = CustomUserCreationForm
+    form_class = AgentUpdateForm  # Create a custom form for updating agent
+    model = Agent
 
     def get_queryset(self):
-        admin = get_object_or_404(Admin, user=self.request.user)
-        return Agent.objects.filter(org=admin.org)
+        print(f"User role: {self.request.user.role}")  # Debugging role
+        if self.request.user.role == ADMIN:
+            admin = get_object_or_404(Admin, user=self.request.user)
+            queryset = Agent.objects.filter(org=admin.org)
+            print(f"Admin org queryset: {queryset}") 
+            return queryset
+        elif self.request.user.role == AGENT:
+            queryset = Agent.objects.filter(user=self.request.user)
+            print(f"Agent queryset: {queryset}") 
+            return queryset
+        return Agent.objects.none()
+
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        if self.request.user.role == AGENT and obj.user != self.request.user:
+            raise PermissionDenied("You do not have permission to update this profile.")
+        return obj
     
+    
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        agent = self.get_object()  # Fetch the agent instance being updated
+        kwargs['instance'] = agent  # Pass the instance of the agent to the form
+        kwargs['user_instance'] = agent.user  # Pass the related user instance
+        return kwargs
+
     def get_success_url(self):
+        if self.request.user.role == AGENT:
+            return reverse('home-page') 
         return reverse('accounts:agent-list')
+
+
+
+
 
 
 class AgentDetailView(AdminRequiredMixin, LoginRequiredMixin, DetailView):

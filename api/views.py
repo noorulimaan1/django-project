@@ -1,5 +1,5 @@
 from django.db.models import Q
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import Http404
 from django.core.exceptions import ValidationError
 
@@ -13,6 +13,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.exceptions import NotFound
 from rest_framework.views import APIView
+import json
 
 from accounts.models import User, Organization, Agent, Admin
 
@@ -23,7 +24,8 @@ from api.mixins import (
     OrgRestrictedMixin, 
     AdminOrgRestrictedMixin,
     AgentsOrgRestrictedMixin,
-    CustomerOrgRestrictedMixin
+    CustomerOrgRestrictedMixin,
+    SuperuserRequiredMixin
 )
 
 from api.permissions import IsAdminUser, IsAgentOrAdminUser
@@ -48,32 +50,26 @@ from client.models import Lead, Customer
 class LeadIngestionView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated, IsAgentOrAdminUser]
-    parser_classes = [MultiPartParser, JSONParser]  # Allow multi-part form data and JSON
+    parser_classes = [MultiPartParser, JSONParser] 
 
     def post(self, request, *args, **kwargs):
-        # Check if 'file' is part of the request data
         file = request.FILES.get('file', None)
 
         if file:
             try:
-                # Load the JSON data from the file
                 leads_data = json.load(file)
             except json.JSONDecodeError:
                 return Response({'error': 'Invalid JSON format in file'}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            # Check if request data is JSON
             leads_data = request.data
 
             if isinstance(leads_data, list):
-                # If the data is a list, use it directly
                 pass
             else:
                 return Response({'error': 'Invalid data format. Expected a list of leads or a file.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Ingest the leads using the utility function
         results = ingest_leads(leads_data)
 
-        # Process the results
         response_data = {
             'ingested_leads': [],
             'errors': []
@@ -92,7 +88,7 @@ class UserTokenView(TokenObtainPairView):
     serializer_class = UserTokenViewSerializer
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(SuperuserRequiredMixin, viewsets.ModelViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated, IsAdminUser]
     parser_classes = (MultiPartParser, FormParser)
@@ -141,6 +137,16 @@ class AgentViewSet(AgentsOrgRestrictedMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         return super().get_queryset() 
     
+    def create(self, request, *args, **kwargs):
+        # Pass the request to the serializer context
+        serializer = self.get_serializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    
+
+# for agents to update their own profile
 
 class AgentUpdateView(AgentOrgRestrictedMixin, APIView):
     permission_classes = [IsAuthenticated, IsAgentOrAdminUser]
@@ -197,8 +203,8 @@ class LeadViewSet(LeadsOrgRestrictedMixin, viewsets.ModelViewSet):
 
         return queryset
 
-    def perform_create(self, serializer):
-        serializer.save(agent=self.request.user.agent_profile)
+    # def perform_create(self, serializer):
+    #     serializer.save(agent=self.request.user.agent_profile)
 
 
 class LeadsByAgentView(generics.ListAPIView):
@@ -215,7 +221,6 @@ class LeadsByAgentView(generics.ListAPIView):
         except Agent.DoesNotExist:
             raise NotFound(f'Agent with id {agent_id} does not exist.')
 
-        # Check if agent belongs to the organization of the user or is the user itself
         if hasattr(user, 'admin_profile'):
             if agent.org != user.admin_profile.org:
                 raise PermissionDenied('You do not have permission to access this agent.')
@@ -251,16 +256,34 @@ class LeadsOfAgentByCategoryView(APIView):
 
 class LeadCreateView(APIView):
     permission_classes = [IsAuthenticated, IsAgentOrAdminUser]
+
     def post(self, request):
-        # If the user is an agent, associate the lead with their profile
-        if hasattr(request.user, 'agent_profile'):
-            request.data['agent'] = request.user.agent_profile.pk
+        user = request.user
         
-        serializer = LeadSerializer(data=request.data)
+        if hasattr(user, 'agent_profile'):
+            agent = user.agent_profile
+            request.data['agent'] = agent.pk
+            request.data['organization'] = agent.org.pk
+
+        elif hasattr(user, 'admin_profile'):
+            admin = user.admin_profile
+            agent_id = request.data.get('agent')
+            if agent_id:
+                agent = Agent.objects.get(pk=agent_id)
+                if agent.org != admin.org:
+                    return Response(
+                        {'error': 'You can only assign leads to agents in your organization.'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                request.data['organization'] = admin.org.pk
+        
+        serializer = LeadSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
 
 class LeadDetailView(LeadOrgRestrictedMixin, APIView):
     permission_classes = [IsAuthenticated, IsAgentOrAdminUser]
@@ -271,13 +294,38 @@ class LeadDetailView(LeadOrgRestrictedMixin, APIView):
 
 class LeadUpdateView(LeadOrgRestrictedMixin, APIView):
     permission_classes = [IsAuthenticated, IsAgentOrAdminUser]
+
     def put(self, request, pk):
-        lead = self.get_object(pk)
-        serializer = LeadSerializer(lead, data=request.data)
+        user = request.user
+        data = request.data.copy()  # Create a mutable copy of request.data
+
+        # If the user is an agent, automatically set the agent and organization
+        if hasattr(user, 'agent_profile'):
+            agent = user.agent_profile
+            data['agent'] = agent.pk
+            data['organization'] = agent.org.pk
+
+        # If the user is an admin, ensure they can assign only to agents from their organization
+        elif hasattr(user, 'admin_profile'):
+            admin = user.admin_profile
+            # Verify that the agent belongs to the same organization
+            agent_id = data.get('agent')
+            if agent_id:
+                agent = Agent.objects.get(pk=agent_id)
+                if agent.org != admin.org:
+                    return Response(
+                        {'error': 'You can only assign leads to agents in your organization.'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                data['organization'] = admin.org.pk
+
+        lead = get_object_or_404(Lead, pk=pk)
+        serializer = LeadSerializer(lead, data=data, context={'request': request})  # Pass context with request
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class LeadDeleteView(LeadOrgRestrictedMixin, APIView):
     permission_classes = [IsAuthenticated, IsAgentOrAdminUser]
@@ -285,7 +333,6 @@ class LeadDeleteView(LeadOrgRestrictedMixin, APIView):
         lead = self.get_object(pk)
         lead.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
 
 class CustomerViewSet(CustomerOrgRestrictedMixin, viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsAgentOrAdminUser]

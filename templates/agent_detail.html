@@ -4,7 +4,9 @@
 
     <a href='{% url 'accounts:agent-list' %}'>Go back</a>
     <br>
-    <h1>AGEENT DETAILS</h1>
+    <h1>AGENT DETAILS</h1>
+    <img src="{{ agent.profile_photo.url }}" style="width:20px; height:20px; border-radius:50%;">
+
     <p>FULL NAME: {{agent}} </p>
     <p>USERNAME: {{agent.user.username}} </p>
     <p>ORGANIZATION: {{agent.org}} </p>

@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'django_celery_beat',
     'django_celery_results',
+    'debug_toolbar',
 ]
 
 REST_FRAMEWORK = {
@@ -71,9 +72,10 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # 'accounts.middleware.LoginRequiredMiddleware', 
+    'accounts.middleware.LoginRequiredMiddleware',
 ]
 
 ROOT_URLCONF = 'crm.urls'
@@ -101,17 +103,14 @@ WSGI_APPLICATION = 'crm.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
+
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'dbcrm',
-        'USER' : 'postgres',
-        'PASSWORD' : 'django123',
-        'HOST' : 'localhost',
-        'PORT' : '5432', 
+        'NAME': 'crm',
+        'USER': 'postgres',
+        'PASSWORD': 'django123',
+        'HOST': 'localhost',
+        'PORT': '5432',
 
     }
 }
@@ -184,3 +183,7 @@ CACHES = {
 MEDIA_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'media')
 
 MEDIA_URL = '/media/'
+
+STATIC_URL = 'static/'
+
+INTERNAL_IPS = ['127.0.0.1', 'localhost']

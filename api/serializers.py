@@ -37,6 +37,7 @@ class UserTokenViewSerializer(TokenObtainPairSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(validators=[EmailValidator()])
+    age = serializers.ReadOnlyField()
 
     class Meta:
         model = User
@@ -55,12 +56,12 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user_role = self.context.get('role')  # Pass role through context
-        
+
         if user_role == 'customer':
             # Generate username and password for customer
             first_name = validated_data['first_name']
             last_name = validated_data['last_name']
-            base_username = f"{first_name.lower()}.{last_name.lower()}"
+            base_username = f'{first_name.lower()}.{last_name.lower()}'
             username = self.generate_unique_username(base_username)
             password = get_random_string(10)
             validated_data['username'] = username
@@ -69,17 +70,16 @@ class UserSerializer(serializers.ModelSerializer):
         else:
             # Use default behavior for other user roles
             user = User.objects.create(**validated_data)
-        
+
         user.save()
         return user
-
 
     def generate_unique_username(self, base_username):
         # Logic to ensure unique username
         username = base_username
         counter = 1
         while User.objects.filter(username=username).exists():
-            username = f"{base_username}{counter}"
+            username = f'{base_username}{counter}'
             counter += 1
         return username
 
@@ -132,13 +132,13 @@ class AgentSerializer(serializers.ModelSerializer):
         last_name = user_data.get('last_name', '')
 
         # Generate username using first and last name
-        base_username = f"{first_name.lower()}.{last_name.lower()}"
+        base_username = f'{first_name.lower()}.{last_name.lower()}'
         username = self.generate_unique_username(base_username)
 
         # Generate random password
         password = get_random_string(10)
 
-        print(f"Generated password for {username}: {password}")
+        print(f'Generated password for {username}: {password}')
         # Create user for the agent
         user_data = {
             'username': username,
@@ -152,7 +152,8 @@ class AgentSerializer(serializers.ModelSerializer):
         new_user.save()
 
         # Create the agent with the new user and organization
-        agent = Agent.objects.create(user=new_user, org=org, hire_date=validated_data.get('hire_date'))
+        agent = Agent.objects.create(
+            user=new_user, org=org, hire_date=validated_data.get('hire_date'))
 
         # Optionally send the credentials via email to the agent
         # send_email_to_agent(new_user.email, username, password)
@@ -160,27 +161,24 @@ class AgentSerializer(serializers.ModelSerializer):
         return agent
 
     def generate_unique_username(self, base_username):
-        """
+        '''
         Helper method to generate a unique username by appending a number
         if the base username already exists.
-        """
+        '''
         username = base_username
         counter = 1
 
         while User.objects.filter(username=username).exists():
-            username = f"{base_username}{counter}"
+            username = f'{base_username}{counter}'
             counter += 1
 
         return username
-    
+
     def validate_user(self, user_data):
         age = user_data.get('age')
         if age and (age < 18 or age > 45):
-            raise serializers.ValidationError("Age must be between 18 and 45.")
+            raise serializers.ValidationError('Age must be between 18 and 45.')
         return user_data
-
-
-  
 
     def update(self, instance, validated_data):
         # Handle nested User update
@@ -234,18 +232,24 @@ class AdminSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'org']
 
 
+class AverageLeadsSerializer(serializers.Serializer):
+    organization_id = serializers.IntegerField()
+    organization_name = serializers.CharField()
+    average_leads = serializers.FloatField()
+
+
 class LeadSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(validators=[EmailValidator()])
+    agent_first_name = serializers.CharField(source='agent__user__first_name')  
+    agent_id = serializers.IntegerField(source='agent__id')  
 
     class Meta:
         model = Lead
         fields = [
             'id',
-            'agent',
-            'organization',
+            'agent_first_name',
+            'agent_id',
             'first_name',
             'last_name',
-            'age',
             'email',
             'phone_number',
             'address',
@@ -253,23 +257,33 @@ class LeadSerializer(serializers.ModelSerializer):
             'created_at',
         ]
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        request = self.context.get('request')
 
-        if request and hasattr(request.user, 'agent_profile'):
-            self.fields.pop('agent', None)
-            self.fields.pop('organization', None)
+class LeadCountSerializer(serializers.ModelSerializer):
+    agent_first_name = serializers.CharField(source='agent.user.first_name')  
+    agent_id = serializers.IntegerField(source='agent.id')  
 
-        elif request and hasattr(request.user, 'admin_profile'):
-            self.fields.pop('organization', None)
-            self.fields['agent'].queryset = Agent.objects.filter(org=request.user.admin_profile.org)
+    class Meta:
+        model = Lead
+        fields = [
+            'id',
+            'agent_first_name',
+            'agent_id',
+            'first_name',
+            'last_name',
+            'email',
+            'phone_number',
+            'address',
+            'category',
+            'created_at',
+        ]
+
 
     def validate(self, data):
-        lead = self.instance  # Get the current lead instance
+        lead = self.instance 
 
-        if lead:  # Only perform checks if we're updating an existing lead
-            new_category = data.get('category', lead.category)  # Get the new category or default to the current one
+        if lead: 
+            
+            new_category = data.get('category', lead.category)
 
             if lead.category != new_category:  # Check if the category is changing
                 if lead.category == LEAD_CATEGORY_NEW and new_category not in [
@@ -289,7 +303,8 @@ class LeadSerializer(serializers.ModelSerializer):
                     )
 
                 if lead.category == LEAD_CATEGORY_CONVERTED:
-                    raise serializers.ValidationError('Lead status cannot be changed once it is Converted.')
+                    raise serializers.ValidationError(
+                        'Lead status cannot be changed once it is Converted.')
 
         return data
 
@@ -297,55 +312,42 @@ class LeadSerializer(serializers.ModelSerializer):
         request = self.context['request']
         lead = self.instance
 
-        # Automatically set agent and organization if creating a new lead
         if lead is None:
             if hasattr(request.user, 'agent_profile'):
-                # If the user is an agent, auto-assign agent and organization
                 agent = request.user.agent_profile
                 organization = agent.org
                 self.validated_data['agent'] = agent
                 self.validated_data['organization'] = organization
 
             elif hasattr(request.user, 'admin_profile'):
-                # If the user is an admin, allow the agent to be explicitly set
                 organization = request.user.admin_profile.org
                 self.validated_data['organization'] = organization
 
                 if 'agent' not in self.validated_data:
-                    raise serializers.ValidationError("Admin must assign an agent to the lead.")
+                    raise serializers.ValidationError(
+                        'Admin must assign an agent to the lead.')
 
         return super().save(**kwargs)
-
-
-
 
     def validate_category(self, value):
 
         if self.instance is None and value == LEAD_CATEGORY_CONVERTED:
-            raise serializers.ValidationError("A new lead cannot be marked as 'Converted'.")
-        return value
-
-    def validate_age(self, value):
-        if value is not None and value < 0:
-            raise serializers.ValidationError('Age cannot be negative.')
-        elif value is not None and (value < 18 or value > 45):
-            raise serializers.ValidationError('Age must be between 18 and 45')
+            raise serializers.ValidationError(
+                'A new lead cannot be marked as 'Converted'.')
         return value
 
     def validate_email(self, value):
 
-        # Check if the instance exists (update case)
         if self.instance:
             if Lead.objects.filter(email=value).exclude(pk=self.instance.pk).exists():
-                raise serializers.ValidationError("A lead with this email already exists.")
+                raise serializers.ValidationError(
+                    'A lead with this email already exists.')
         else:
             if Lead.objects.filter(email=value).exists():
-                raise serializers.ValidationError("A lead with this email already exists.")
+                raise serializers.ValidationError(
+                    'A lead with this email already exists.')
 
         return value
-    
-
-
 
 
 class CustomerSerializer(serializers.ModelSerializer):
@@ -364,67 +366,4 @@ class CustomerSerializer(serializers.ModelSerializer):
     def save(self, **kwargs):
         customer = super().save(**kwargs)
 
-        if customer.age < 18 or customer.age > 45:
-            raise serializers.ValidationError('Age must be between 18 and 45')
-
         return customer
-    
-
-    
-
-# class CustomerSerializer(serializers.ModelSerializer):
-#     user = UserSerializer()  # Nested serializer to handle user creation
-
-#     class Meta:
-#         model = Customer
-#         fields = ['user', 'org', 'lead', 'total_purchases', 'first_purchase_date', 'last_purchase_date', 'agent']
-
-    # def create(self, validated_data):
-    #     request = self.context.get('request')
-    #     current_user = request.user
-        
-    #     # User data is nested, pop it from validated_data to handle separately
-    #     user_data = validated_data.pop('user')
-    #     # Create the User instance
-    #     user = User.objects.create(**user_data)
-        
-    #     # If the current user is an admin, allow them to assign an agent
-    #     if hasattr(current_user, 'admin_profile'):
-    #         org = current_user.admin_profile.org
-    #         validated_data['org'] = org
-    #         agent = validated_data.get('agent')
-    #         if agent and agent.org != org:
-    #             raise serializers.ValidationError("You can only assign agents from your own organization.")
-        
-    #     # If the current user is an agent, set the agent field to the current user and their organization
-    #     elif hasattr(current_user, 'agent_profile'):
-    #         agent = current_user.agent_profile
-    #         validated_data['agent'] = agent
-    #         validated_data['org'] = agent.org
-        
-    #     # Create the Customer object with the validated data
-    #     customer = Customer.objects.create(user=user, **validated_data)
-    #     return customer
-
-
-# class CustomerSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Customer
-#         fields = [
-#             'id',
-#             'user',
-#             'org',
-#             'lead',
-#             'total_purchases',
-#             'first_purchase_date',
-#             'last_purchase_date',
-#         ]
-
-#     def save(self, **kwargs):
-#         customer = super().save(**kwargs)
-
-#         if customer.age < 18 or customer.age > 45:
-#             raise serializers.ValidationError('Age must be between 18 and 45')
-            
-#         return customer
-

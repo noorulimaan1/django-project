@@ -1,5 +1,6 @@
+from datetime import date
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, RegexValidator, EmailValidator
 from django.core.exceptions import ValidationError
 
 from client.constants import (
@@ -25,9 +26,13 @@ class Lead(Timestamp):
     )
     first_name = models.CharField(max_length=25)
     last_name = models.CharField(max_length=25)
-    age = models.IntegerField(validators=[MinValueValidator(0)], blank=True, null=True)
-    email = models.EmailField(unique=True)
-    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    email = models.EmailField(validators=[EmailValidator()], blank=False, null=False)
+    phone_number = models.CharField(validators=[
+            RegexValidator(
+                regex=r'^92-3\d{2}-\d{7}$',
+                message='Phone number must be in the format 92-3XX-XXXXXXX'
+            )
+        ], blank=True, null=True)
     address = models.TextField(max_length=100, blank=True, null=True)
 
     category = models.SmallIntegerField(
@@ -35,13 +40,16 @@ class Lead(Timestamp):
         default=LEAD_CATEGORY_NEW,
     )
 
+    class Meta:
+        unique_together = ('email', 'organization')  
+
+    
     def clean(self):
         super().clean()
 
-        if self.pk:  # if it's an existing lead
+        if self.pk: 
             previous_lead = Lead.objects.get(pk=self.pk)
 
-            # Only check category if it is being changed
             if self.category != previous_lead.category:
                 if previous_lead.category == LEAD_CATEGORY_NEW:
                     if self.category not in [

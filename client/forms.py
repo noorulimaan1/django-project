@@ -7,6 +7,7 @@ from client.models import Lead, Customer
 from client.constants import LEAD_CATEGORIES, LEAD_CATEGORY_CONVERTED
 from accounts.constants import ADMIN, AGENT
 
+
 class LeadModelForm(forms.ModelForm):
     class Meta:
         model = Lead
@@ -14,7 +15,6 @@ class LeadModelForm(forms.ModelForm):
             'agent',
             'first_name',
             'last_name',
-            'age',
             'email',
             'phone_number',
             'address',
@@ -29,34 +29,25 @@ class LeadModelForm(forms.ModelForm):
             user = self.request.user
             if user.role == ADMIN:
                 admin = get_object_or_404(Admin, user=user)
-                self.fields['agent'].queryset = Agent.objects.filter(org=admin.org)
+                self.fields['agent'].queryset = Agent.objects.filter(
+                    org=admin.org)
             elif user.role == AGENT:
 
-                self.fields.pop('agent', None)  
+                self.fields.pop('agent', None)
 
-    def clean_age(self):
-        age = self.cleaned_data.get('age')
-        if age is not None and (age < 18 or age > 45):
-            raise forms.ValidationError("Age must be between 18 and 45.")
-        return age
-    
     def clean_category(self):
         category = self.cleaned_data.get('category')
-        # Check if the form is being created for the first time (not an existing instance)
-        if self.instance.pk is None:  # If there's no primary key, it's a new instance
+        if self.instance.pk is None:
             if category == LEAD_CATEGORY_CONVERTED:
-                raise forms.ValidationError("A new lead cannot be marked as Converted.")
+                raise forms.ValidationError(
+                    'A new lead cannot be marked as Converted.')
         return category
-
 
 
 class CustomerModelForm(forms.ModelForm):
     first_name = forms.CharField(max_length=30)
     last_name = forms.CharField(max_length=30)
     email = forms.EmailField()
-    # Agentdob
-    # address
-    # phone_number
 
     class Meta:
         model = Customer
@@ -83,12 +74,12 @@ class CustomerModelForm(forms.ModelForm):
         last_name = self.cleaned_data.get('last_name')
         email = self.cleaned_data.get('email')
 
-        random_string = get_random_string(length=3)  
-        username = f"{first_name.lower()}.{last_name.lower()}.{random_string}"
-        password = get_random_string(length=12)  
-        
-        print(f"Generated Username: {username}")
-        print(f"Generated Password: {password}")
+        random_string = get_random_string(length=3)
+        username = f'{first_name.lower()}.{last_name.lower()}.{random_string}'
+        password = get_random_string(length=12)
+
+        print(f'Generated Username: {username}')
+        print(f'Generated Password: {password}')
 
         user = User.objects.create_user(
             username=username,
@@ -100,7 +91,7 @@ class CustomerModelForm(forms.ModelForm):
 
         customer = super().save(commit=False)
         customer.user = user
-        customer.org = self.org  
+        customer.org = self.org
 
         if commit:
             customer.save()
@@ -110,6 +101,3 @@ class CustomerModelForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         return cleaned_data
-
-
-

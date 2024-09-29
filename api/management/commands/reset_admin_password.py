@@ -18,26 +18,25 @@ class Command(BaseCommand):
         default_password = 'default123'
 
         if not user_input:
-            self.stdout.write(self.style.ERROR('The --user argument is required.'))
+            self.stdout.write(self.style.ERROR(
+                'The --user argument is required.'))
             return
 
         try:
-            # Try to get the user by username first, fallback to email if not found
             try:
                 user = User.objects.get(username=user_input)
             except User.DoesNotExist:
                 user = User.objects.get(email=user_input)
 
-            # Ensure the user is an admin
             if user.role != 1:
                 raise CommandError('The user is not an admin.')
 
-            # Set the new password and save the user
             user.set_password(default_password)
             user.save()
 
             self.stdout.write(
-                self.style.SUCCESS(f'Successfully reset password for admin user: {user.username}')
+                self.style.SUCCESS(
+                    f'Successfully reset password for admin user: {user.username}')
             )
 
         except User.DoesNotExist:

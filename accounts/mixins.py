@@ -29,31 +29,11 @@ class AdminOrAgentsRequiredMixin(UserPassesTestMixin):
         
 class AdminOrAgentRequiredMixin(UserPassesTestMixin):
     def test_func(self):
-        agent = get_object_or_404(Agent, user=self.request.user)
-        return self.request.user.role == ADMIN or agent == self.get_object()
+        try:
+            agent = Agent.objects.get(user=self.request.user)
+        except Agent.DoesNotExist:
+            agent = None  
 
+        obj = self.get_object()  
 
-# class RoleRequiredMixin(UserPassesTestMixin):
-#     required_role = None
-
-#     def test_func(self):
-#         user_role = self.request.user.role
-#         return user_role and user_role.name == self.required_role
-
-#     def handle_no_permission(self):
-#         if not self.request.user.is_authenticated:
-#             return redirect('login')
-#         else:
-#             raise PermissionDenied
-
-# class AdminRequiredMixin(RoleRequiredMixin):
-#     required_role = 'Admin'
-
-#     def dispatch(self, request, *args, **kwargs):
-#         # Check if user is staff as well
-#         if not request.user.is_staff:
-#             raise PermissionDenied
-#         return super().dispatch(request, *args, **kwargs)
-    
-
-
+        return self.request.user.role == ADMIN or (agent is not None and agent.user == obj.user)

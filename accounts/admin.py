@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin 
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import UserCreationForm
 
 from accounts.models import User, Organization, Admin, Agent
@@ -17,7 +17,7 @@ class AdminInline(admin.StackedInline):
     model = Admin
     can_delete = False
     verbose_name_plural = 'Admin Profile'
-    fk_name = 'user'  
+    fk_name = 'user'
 
 
 class CustomAdminCreationForm(UserCreationForm):
@@ -29,7 +29,14 @@ class CustomAdminCreationForm(UserCreationForm):
 
     class Meta(UserCreationForm.Meta):
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name', 'organization', 'role')
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'organization',
+            'role',
+        )
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -46,19 +53,15 @@ class CustomAdminCreationForm(UserCreationForm):
         return user
 
 
-# Customizes how the User model is displayed and managed in the admin interface.
 class CustomUserAdmin(BaseUserAdmin):
-    add_form = CustomAdminCreationForm 
+    add_form = CustomAdminCreationForm
     inlines = (AdminInline,)
 
     fieldsets = (
-        (
-            'Credentials', 
-            {'fields': ('username', 'password')}
-        ),
+        ('Credentials', {'fields': ('username', 'password')}),
         (
             'Personal info',
-            {'fields': ('first_name', 'last_name', 'email', 'age', 'role')},
+            {'fields': ('first_name', 'last_name', 'email', 'role')},
         ),
         (
             'Permissions',
@@ -75,7 +78,7 @@ class CustomUserAdmin(BaseUserAdmin):
         (
             None,
             {
-                'classes': ('wide',), 
+                'classes': ('wide',),
                 'fields': (
                     'first_name',
                     'last_name',
@@ -94,7 +97,7 @@ class CustomUserAdmin(BaseUserAdmin):
         ),
     )
 
-    list_display = ('username',  'first_name', 'last_name', 'email', 'role')
+    list_display = ('username', 'first_name', 'last_name', 'email', 'role')
     search_fields = ('email', 'first_name', 'last_name', 'role')
     ordering = ('email',)
 

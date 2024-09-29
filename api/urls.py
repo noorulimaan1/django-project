@@ -20,6 +20,10 @@ from api.views import (
     UserTokenView,
     AgentUpdateView,
     LeadIngestionView,
+    TopOrganizationByCustomersView,
+    AverageLeadsPerAgentView,
+    AgentsCountPerOrgView,
+    CustomersConvertedByAgentLastWeekView,
 )
 
 router = DefaultRouter()
@@ -52,9 +56,12 @@ urlpatterns = [
         LeadsOfAgentByCategoryView.as_view(),
         name='leads-of-agent-by-category',
     ),
+    path('organizations/higest-customers/', TopOrganizationByCustomersView.as_view(), name='org-by-highest-customers'),
+    path('organizations/average-leads-per-agent/', AverageLeadsPerAgentView.as_view(), name='avg-leads-per-agent'),
+    path('organizations/agent-count/', AgentsCountPerOrgView.as_view(), name='agent-count-per-org'),
+    path('agents/<str:agent_name>/customers-converted-last-week/', CustomersConvertedByAgentLastWeekView.as_view(), name='leads-converted-per-agents'),
     path('leads/ingest/', LeadIngestionView.as_view(), name='lead-ingestion'),
     path('', include(router.urls)),
-
 ]
 
 

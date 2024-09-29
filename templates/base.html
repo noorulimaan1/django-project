@@ -13,7 +13,7 @@
     Welcome, <b>{{ request.user.first_name }} {{ request.user.last_name }} </b>
     <br>
         {% if request.user.profile_photo %}
-            <img src="{{ request.user.profile_photo.url }}" alt="{{ request.user.username }}'s Profile Photo" style="width:20px; height:20px; border-radius:50%;">
+            <img src='{{ request.user.profile_photo.url }}' alt='{{ request.user.username }}'s Profile Photo' style='width:20px; height:20px; border-radius:50%;'>
         {% endif %}
     {% if request.user.role == 1 %}
         <b>Organization: {{ request.user.admin_profile.org.name }}</b> 
@@ -21,7 +21,7 @@
         <a href='{% url 'home-page' %}'>Home</a>
     {% elif  request.user.role == 2 %}
         <p>Organization: {{ request.user.agent_profile.org.name }}</p> 
-        <a href="{% url 'accounts:agent-update' request.user.agent_profile.pk %}">Update Your Profile</a> 
+        <a href='{% url 'accounts:agent-update' request.user.agent_profile.pk %}'>Update Your Profile</a> 
 
     {% endif %}
     

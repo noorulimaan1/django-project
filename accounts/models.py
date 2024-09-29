@@ -1,4 +1,5 @@
-from django.core.validators import MinValueValidator
+from datetime import date
+from django.core.validators import MinValueValidator, RegexValidator
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
@@ -8,17 +9,18 @@ from django.db import models
 
 from accounts.constants import (
     ROLE_CHOICES,
-    AGENT, 
-  
+    AGENT,
+
 )
 
 # Create your models here.
+
+
 class Timestamp(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        # To make sure the database for this class is not created.
         abstract = True
 
 
@@ -49,14 +51,20 @@ class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     username = models.CharField(max_length=30, unique=True)
-    email = models.EmailField(unique=True, blank=True, null=True, max_length=50)
-    age = models.IntegerField(validators=[MinValueValidator(0)], blank=True, null=True)
+    email = models.EmailField(unique=True, blank=True,
+                              null=True, max_length=50)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=True)
-    profile_photo = models.ImageField(upload_to=upload_to, blank=True, null=True) 
+    profile_photo = models.ImageField(
+        upload_to=upload_to, blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)
     address = models.TextField(blank=True, null=True, max_length=200)
-    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    phone_number = models.CharField(validators=[
+        RegexValidator(
+            regex=r'^92-3\d{2}-\d{7}$',
+            message='Phone number must be in the format 92-3XX-XXXXXXX'
+        )
+    ], blank=True, null=True)
 
     role = models.SmallIntegerField(choices=ROLE_CHOICES, default=AGENT)
 
@@ -67,6 +75,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
+
+    @property
+    def age(self):
+        if self.date_of_birth:
+            today = date.today()
+            return today.year - self.date_of_birth.year - ((today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day))
+        return None
 
 
 class Admin(Timestamp):
@@ -85,7 +100,12 @@ class Organization(Timestamp):
     name = models.CharField(unique=True, max_length=50)
     email = models.CharField(unique=True, max_length=50)
     address = models.TextField(blank=True, null=True)
-    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    phone_number = models.CharField(validators=[
+        RegexValidator(
+            regex=r'^92-3\d{2}-\d{7}$',
+            message='Phone number must be in the format 92-3XX-XXXXXXX'
+        )
+    ], blank=True, null=True)
     website = models.URLField(blank=True, null=True)
     logo = models.ImageField(upload_to=upload_to, blank=True, null=True)
 
@@ -101,7 +121,6 @@ class Agent(Timestamp):
         'Organization', on_delete=models.CASCADE, related_name='agents'
     )
     hire_date = models.DateField(null=True, blank=True)
-    
 
     def form_valid(self, form):
         form.instance.org = self.request.user.admin_profile.org

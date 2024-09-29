@@ -14,6 +14,7 @@ from client.mixins import LeadAccessMixin, CustomerAccessMixin
 
 # Create your views here.
 
+
 class LeadListView(LeadAccessMixin, View):
     def get(self, request, *args, **kwargs):
         leads = self.get_leads()
@@ -24,39 +25,41 @@ class LeadListView(LeadAccessMixin, View):
         context = {'leads': page_obj.object_list, 'page_obj': page_obj}
         return render(request, 'leads_list.html', context)
 
+
 class LeadDetailView(LeadAccessMixin, View):
     def get(self, request, pk, *args, **kwargs):
         lead = self.get_lead(pk)
         context = {'lead': lead}
         return render(request, 'lead_details.html', context)
 
+
 class LeadCreateView(LeadAccessMixin, View):
     def get(self, request, *args, **kwargs):
-        form = LeadModelForm(request=request)  # Pass request to form
+        form = LeadModelForm(request=request)
         context = {'form': form}
         return render(request, 'lead_create.html', context)
 
     def post(self, request, *args, **kwargs):
-        form = LeadModelForm(request.POST, request=request)  # Pass request to form
+        form = LeadModelForm(request.POST, request=request)
         if form.is_valid():
             lead = form.save(commit=False)
-            
+
             if request.user.role == ADMIN:
                 admin = get_object_or_404(Admin, user=request.user)
                 lead.organization = admin.org
             elif request.user.role == AGENT:
                 agent = get_object_or_404(Agent, user=request.user)
                 lead.organization = agent.org
-                lead.agent = agent 
+                lead.agent = agent
             else:
-                raise PermissionDenied('User does not have an associated organization.')
+                raise PermissionDenied(
+                    'User does not have an associated organization.')
 
             lead.save()
             return redirect(reverse('client:lead-list'))
-        
+
         context = {'form': form}
         return render(request, 'lead_create.html', context)
-
 
 
 class LeadUpdateView(LeadAccessMixin, View):
@@ -75,6 +78,7 @@ class LeadUpdateView(LeadAccessMixin, View):
         context = {'form': form, 'lead': lead}
         return render(request, 'lead_update.html', context)
 
+
 class LeadDeleteView(LeadAccessMixin, View):
     def get(self, request, pk, *args, **kwargs):
         lead = self.get_lead(pk)
@@ -87,8 +91,6 @@ class LeadDeleteView(LeadAccessMixin, View):
         return redirect(reverse('client:lead-list'))
 
 
-
-
 class CustomerListView(CustomerAccessMixin, View):
     def get(self, request, *args, **kwargs):
         customers = self.get_customers()
@@ -99,40 +101,41 @@ class CustomerListView(CustomerAccessMixin, View):
         context = {'customers': page_obj.object_list, 'page_obj': page_obj}
         return render(request, 'customers_list.html', context)
 
+
 class CustomerDetailView(CustomerAccessMixin, View):
     def get(self, request, pk, *args, **kwargs):
         customer = self.get_customer(pk)
         context = {'customer': customer}
         return render(request, 'customer_details.html', context)
 
+
 class CustomerCreateView(CustomerAccessMixin, View):
     def get(self, request, *args, **kwargs):
-        form = CustomerModelForm(request=request)  # Pass request to form
+        form = CustomerModelForm(request=request)
         context = {'form': form}
-        return render(request, 'customer_create.html', context) 
+        return render(request, 'customer_create.html', context)
 
     def post(self, request, *args, **kwargs):
-        form = CustomerModelForm(request.POST, request=request)  # Pass request to form
+        form = CustomerModelForm(request.POST, request=request)
         if form.is_valid():
             customer = form.save(commit=False)
-            
-            # Set the organization based on user role
+
             if request.user.role == ADMIN:
                 admin = get_object_or_404(Admin, user=request.user)
                 customer.org = admin.org
             elif request.user.role == AGENT:
                 agent = get_object_or_404(Agent, user=request.user)
                 customer.org = agent.org
-                customer.agent = agent  # Automatically assign the agent to the customer
+                customer.agent = agent
             else:
-                raise PermissionDenied('User does not have an associated organization.')
+                raise PermissionDenied(
+                    'User does not have an associated organization.')
 
             customer.save()
             return redirect(reverse('client:customer-list'))
-        
+
         context = {'form': form}
         return render(request, 'customer_create.html', context)
-
 
 
 class CustomerUpdateView(CustomerAccessMixin, View):
@@ -150,6 +153,7 @@ class CustomerUpdateView(CustomerAccessMixin, View):
             return redirect(reverse('client:customer-list'))
         context = {'form': form, 'customer': customer}
         return render(request, 'customer_update.html', context)
+
 
 class CustomerDeleteView(CustomerAccessMixin, View):
     def get(self, request, pk, *args, **kwargs):

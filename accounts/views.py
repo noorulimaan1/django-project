@@ -24,7 +24,6 @@ from accounts.constants import ADMIN, AGENT
 from accounts.models import Agent, Admin
 
 
-
 class SignUpView(AdminRequiredMixin, CreateView):
     template_name = 'registration/signup.html'
     form_class = CustomUserCreationForm
@@ -37,12 +36,12 @@ class CustomLoginView(LoginView):
 
     def get_success_url(self):
         user = self.request.user
-        if user.role == ADMIN or AGENT: 
-            return reverse('home-page') 
+        if user.role == ADMIN or AGENT:
+            return reverse('home-page')
         else:
             return reverse(
                 'client:lead-list'
-            )  
+            )
 
 
 class CustomLogoutView(View):
@@ -69,14 +68,13 @@ class AgentListView(AdminRequiredMixin, LoginRequiredMixin, ListView):
         return Agent.objects.filter(org=admin.org).order_by('-created_at')
 
 
-class AgentCreateView( LoginRequiredMixin, CreateView):
+class AgentCreateView(LoginRequiredMixin, CreateView):
     template_name = 'agent_create.html'
     form_class = CustomUserCreationForm
 
     def form_valid(self, form):
-        # Save the user and agent
         return super().form_valid(form)
-    
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         admin = get_object_or_404(Admin, user=self.request.user)
@@ -85,51 +83,43 @@ class AgentCreateView( LoginRequiredMixin, CreateView):
 
     def get_success_url(self):
         return reverse('accounts:agent-list')
-    
 
 
 class AgentUpdateView(AdminOrAgentRequiredMixin, LoginRequiredMixin, UpdateView):
     template_name = 'agent_update.html'
-    form_class = AgentUpdateForm  # Create a custom form for updating agent
+    form_class = AgentUpdateForm  
     model = Agent
 
     def get_queryset(self):
-        print(f"User role: {self.request.user.role}")  # Debugging role
+        print(f'User role: {self.request.user.role}')  
         if self.request.user.role == ADMIN:
             admin = get_object_or_404(Admin, user=self.request.user)
             queryset = Agent.objects.filter(org=admin.org)
-            print(f"Admin org queryset: {queryset}") 
+            print(f'Admin org queryset: {queryset}')
             return queryset
         elif self.request.user.role == AGENT:
             queryset = Agent.objects.filter(user=self.request.user)
-            print(f"Agent queryset: {queryset}") 
+            print(f'Agent queryset: {queryset}')
             return queryset
-        return Agent.objects.none()
-
 
     def get_object(self, queryset=None):
         obj = super().get_object(queryset)
         if self.request.user.role == AGENT and obj.user != self.request.user:
-            raise PermissionDenied("You do not have permission to update this profile.")
+            raise PermissionDenied(
+                'You do not have permission to update this profile.')
         return obj
-    
-    
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        agent = self.get_object()  # Fetch the agent instance being updated
-        kwargs['instance'] = agent  # Pass the instance of the agent to the form
-        kwargs['user_instance'] = agent.user  # Pass the related user instance
+        agent = self.get_object() 
+        kwargs['instance'] = agent
+        kwargs['user_instance'] = agent.user 
         return kwargs
 
     def get_success_url(self):
         if self.request.user.role == AGENT:
-            return reverse('home-page') 
+            return reverse('home-page')
         return reverse('accounts:agent-list')
-
-
-
-
 
 
 class AgentDetailView(AdminRequiredMixin, LoginRequiredMixin, DetailView):
@@ -147,6 +137,6 @@ class AgentDeleteView(AdminRequiredMixin, LoginRequiredMixin, DeleteView):
     def get_queryset(self):
         admin = get_object_or_404(Admin, user=self.request.user)
         return Agent.objects.filter(org=admin.org)
-    
+
     def get_success_url(self):
         return reverse('accounts:agent-list')

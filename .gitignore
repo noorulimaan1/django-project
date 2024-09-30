@@ -1,2 +1,5 @@
 env/
 *.pyc
+*.json
+passwords.txt
+custommigrations.txt

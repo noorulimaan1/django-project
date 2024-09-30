@@ -55,10 +55,9 @@ class UserSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        user_role = self.context.get('role')  # Pass role through context
+        user_role = self.context.get('role') 
 
         if user_role == 'customer':
-            # Generate username and password for customer
             first_name = validated_data['first_name']
             last_name = validated_data['last_name']
             base_username = f'{first_name.lower()}.{last_name.lower()}'
@@ -68,14 +67,12 @@ class UserSerializer(serializers.ModelSerializer):
             user = User.objects.create(**validated_data)
             user.set_password(password)
         else:
-            # Use default behavior for other user roles
             user = User.objects.create(**validated_data)
 
         user.save()
         return user
 
     def generate_unique_username(self, base_username):
-        # Logic to ensure unique username
         username = base_username
         counter = 1
         while User.objects.filter(username=username).exists():
@@ -333,7 +330,7 @@ class LeadCountSerializer(serializers.ModelSerializer):
 
         if self.instance is None and value == LEAD_CATEGORY_CONVERTED:
             raise serializers.ValidationError(
-                'A new lead cannot be marked as 'Converted'.')
+                'A new lead cannot be marked as Converted.')
         return value
 
     def validate_email(self, value):
